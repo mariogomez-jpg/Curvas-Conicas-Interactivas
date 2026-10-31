@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parábola 1 · Tangente, foco y directriz</title>
+<style>
+  :root{--bg:#f5f7fb;--panel:#fff;--line:#d7dfec;--text:#1f2a3d;--muted:#5f6b7a;--blue:#2563eb;--green:#16a34a;--violet:#7c3aed;--orange:#ea580c;--red:#dc2626}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1240px;margin:0 auto;padding:18px}
+  h1{font-size:1.35rem;margin:0 0 6px}
+  .subtitle{margin:0 0 14px;color:var(--muted);font-size:.98rem}
+  .layout{display:grid;grid-template-columns:minmax(320px,1fr) 320px;gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .canvas-card{padding:12px}.side{padding:14px}
+  .section-title{font-weight:bold;margin:0 0 10px;font-size:1rem}
+  svg{width:100%;height:auto;display:block;border-radius:10px;background:linear-gradient(180deg,#fcfdff,#f7faff)}
+  .control{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #eef2f8}.control:last-child{border-bottom:none;margin-bottom:0}
+  label{display:flex;justify-content:space-between;gap:8px;font-size:.95rem;margin-bottom:6px}
+  input[type="range"]{width:100%}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  button{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-size:.95rem}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .checks{display:grid;gap:8px;font-size:.95rem}.checks label{display:flex;justify-content:flex-start;align-items:center;gap:8px;margin:0}
+  .mini{font-size:.86rem;color:var(--muted);line-height:1.35}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.88rem;color:var(--muted)} .legend span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .pill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .pill{background:#f8fbff;border:1px solid #e6edf8;border-radius:12px;padding:10px}.pill .k{color:var(--muted);font-size:.82rem;margin-bottom:2px}.pill .v{font-size:1rem;font-weight:bold}
+  .footer-note{margin-top:14px;background:#fbfdff;border:1px dashed #d8e4f4;border-radius:12px;padding:10px;font-size:.9rem;color:var(--muted)}
+  @media (max-width:940px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Parábola · Tangente, foco, directriz y puntos asociados</h1>
+  <p class="subtitle">Explora cómo cambia la tangente en un punto P de la parábola y observa sus relaciones con el foco, la directriz y la tangente por el vértice.</p>
+  <div class="layout">
+    <div class="card canvas-card">
+      <svg id="scene" viewBox="0 0 980 660" aria-label="Animación interactiva de una parábola">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#93a4bc"></path>
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="980" height="660" fill="transparent"></rect>
+        <g id="grid"></g>
+        <g id="axes"></g>
+        <g id="curve"></g>
+        <g id="lines"></g>
+        <g id="segments"></g>
+        <g id="points"></g>
+        <g id="labels"></g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2563eb"></i>Parábola</span>
+        <span><i class="swatch" style="background:#111827"></i>Tangente en P</span>
+        <span><i class="swatch" style="background:#16a34a"></i>Tangente por V</span>
+        <span><i class="swatch" style="background:#7c3aed"></i>Directriz</span>
+        <span><i class="swatch" style="background:#dc2626"></i>Distancias de P</span>
+      </div>
+    </div>
+    <div class="card side">
+      <div class="control">
+        <div class="section-title">Controles</div>
+        <div class="btn-row">
+          <button id="playBtn" class="primary">▶ Iniciar</button>
+          <button id="pauseBtn">⏸ Pausar</button>
+          <button id="resetBtn">↺ Reiniciar</button>
+        </div>
+        <div class="mini">Puedes arrastrar el punto P para moverlo sobre la parábola.</div>
+      </div>
+      <div class="control">
+        <label for="pRange"><span>Separación foco–vértice–directriz</span><strong id="pValue">70</strong></label>
+        <input id="pRange" type="range" min="35" max="120" value="70" step="1">
+      </div>
+      <div class="control">
+        <label for="speedRange"><span>Velocidad</span><strong id="speedValue">1.0×</strong></label>
+        <input id="speedRange" type="range" min="0.2" max="2.5" value="1.0" step="0.1">
+      </div>
+      <div class="control">
+        <div class="section-title">Mostrar</div>
+        <div class="checks">
+          <label><input type="checkbox" id="showDistances" checked> Distancias iguales de P</label>
+          <label><input type="checkbox" id="showTangentV" checked> Tangente por V</label>
+          <label><input type="checkbox" id="showParallel" checked> Paralela al eje por P</label>
+          <label><input type="checkbox" id="showSymmetric" checked> Simétrico del foco y punto medio</label>
+        </div>
+      </div>
+      <div class="control">
+        <div class="section-title">Lectura rápida</div>
+        <div class="pill-grid">
+          <div class="pill"><div class="k">Punto P</div><div class="v" id="coordP">(0,0)</div></div>
+          <div class="pill"><div class="k">Foco F</div><div class="v" id="coordF">(0,0)</div></div>
+          <div class="pill"><div class="k">Punto M</div><div class="v" id="coordM">(0,0)</div></div>
+          <div class="pill"><div class="k">Punto N</div><div class="v" id="coordN">(0,0)</div></div>
+        </div>
+      </div>
+      <div class="footer-note">Observa cómo, al variar P o el parámetro de la parábola, cambian la tangente, el simétrico del foco y los puntos M y N, manteniéndose ambos sobre la tangente por el vértice.</div>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  const svg=document.getElementById('scene');
+  const gGrid=document.getElementById('grid');
+  const gAxes=document.getElementById('axes');
+  const gCurve=document.getElementById('curve');
+  const gLines=document.getElementById('lines');
+  const gSegments=document.getElementById('segments');
+  const gPoints=document.getElementById('points');
+  const gLabels=document.getElementById('labels');
+  const W=980,H=660,cx=300,cy=330;
+  const state={p:70,t:0.9,speed:1.0,playing:false,lastTime:null,dragging:false,showDistances:true,showTangentV:true,showParallel:true,showSymmetric:true};
+  const el={pRange:document.getElementById('pRange'),speedRange:document.getElementById('speedRange'),pValue:document.getElementById('pValue'),speedValue:document.getElementById('speedValue'),coordP:document.getElementById('coordP'),coordF:document.getElementById('coordF'),coordM:document.getElementById('coordM'),coordN:document.getElementById('coordN'),playBtn:document.getElementById('playBtn'),pauseBtn:document.getElementById('pauseBtn'),resetBtn:document.getElementById('resetBtn'),showDistances:document.getElementById('showDistances'),showTangentV:document.getElementById('showTangentV'),showParallel:document.getElementById('showParallel'),showSymmetric:document.getElementById('showSymmetric')};
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const sp=(x,y)=>({x:cx+x,y:cy-y});
+  const toMath=(clientX,clientY)=>{const r=svg.getBoundingClientRect();const sx=(clientX-r.left)*(W/r.width);const sy=(clientY-r.top)*(H/r.height);return{x:sx-cx,y:cy-sy}};
+  const svgEl=(tag,attrs={})=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;};
+  function drawGrid(){gGrid.innerHTML='';for(let x=30;x<=W;x+=40)gGrid.appendChild(svgEl('line',{x1:x,y1:0,x2:x,y2:H,stroke:'#ecf1f8','stroke-width':'1'}));for(let y=30;y<=H;y+=40)gGrid.appendChild(svgEl('line',{x1:0,y1:y,x2:W,y2:y,stroke:'#ecf1f8','stroke-width':'1'}));}
+  function updateButtons(){el.playBtn.classList.toggle('primary',state.playing);el.pauseBtn.classList.toggle('primary',!state.playing);}
+  function reflectPointAcrossLine(P,A,B,C){const den=A*A+B*B;const d=(A*P.x+B*P.y+C)/den;return{x:P.x-2*A*d,y:P.y-2*B*d};}
+  function addText(txt,x,y,opts={}){const t=svgEl('text',{x,y,fill:opts.fill||'#1f2a3d','font-size':opts.size||'20','font-weight':opts.weight||'600','text-anchor':opts.anchor||'start'});t.textContent=txt;gLabels.appendChild(t);}
+  function point(pt,r,fill,stroke='white',sw=2){return svgEl('circle',{cx:pt.x,cy:pt.y,r,fill,stroke,'stroke-width':sw});}
+  function render(){
+    const p=state.p; el.pValue.textContent=Math.round(p); el.speedValue.textContent=state.speed.toFixed(1)+'×';
+    const t=state.t; const P={x:p*t*t,y:2*p*t}; const F={x:p,y:0}; const V={x:0,y:0}; const D={x:-p,y:0}; const Q={x:-p,y:P.y};
+    // tangent line at P: x - t y + p t^2 = 0
+    const A=1,B=-t,C=p*t*t; const dir={x:t,y:1}; const norm=Math.hypot(dir.x,dir.y) || 1;
+    const L1={x:P.x-1500*dir.x/norm,y:P.y-1500*dir.y/norm}; const L2={x:P.x+1500*dir.x/norm,y:P.y+1500*dir.y/norm};
+    const Fs=reflectPointAcrossLine(F,A,B,C); const N={x:(F.x+Fs.x)/2,y:(F.y+Fs.y)/2}; const M={x:0,y:P.y};
+    gAxes.innerHTML=''; gCurve.innerHTML=''; gLines.innerHTML=''; gSegments.innerHTML=''; gPoints.innerHTML=''; gLabels.innerHTML='';
+    // axes
+    gAxes.appendChild(svgEl('line',{x1:50,y1:cy,x2:930,y2:cy,stroke:'#b7c9b5','stroke-width':'2','marker-end':'url(#arrow)'}));
+    gAxes.appendChild(svgEl('line',{x1:cx,y1:615,x2:cx,y2:45,stroke:'#d9e1ef','stroke-width':'1.5'}));
+    // axis of parabola
+    gAxes.appendChild(svgEl('line',{x1:sp(-200,0).x,y1:sp(-200,0).y,x2:sp(600,0).x,y2:sp(600,0).y,stroke:'#9cc6a9','stroke-width':'3','stroke-dasharray':'10 8'}));
+    // directrix
+    const dir1=sp(-p,-250), dir2=sp(-p,250); gLines.appendChild(svgEl('line',{x1:dir1.x,y1:dir1.y,x2:dir2.x,y2:dir2.y,stroke:'#7c3aed','stroke-width':'3.5'}));
+    // tangent at V x=0
+    if(state.showTangentV){const v1=sp(0,-270), v2=sp(0,270); gLines.appendChild(svgEl('line',{x1:v1.x,y1:v1.y,x2:v2.x,y2:v2.y,stroke:'#16a34a','stroke-width':'3','stroke-dasharray':'10 7'}));}
+    // parabola path
+    let d='';
+    const tMin=-2.5, tMax=2.5, step=0.05;
+    for(let tt=tMin; tt<=tMax+1e-9; tt+=step){const x=p*tt*tt,y=2*p*tt; const s=sp(x,y); d += (tt===tMin?'M':'L') + s.x + ' ' + s.y + ' ';}
+    gCurve.appendChild(svgEl('path',{d,fill:'none',stroke:'#2563eb','stroke-width':'4'}));
+    // tangent at P
+    const sL1=sp(L1.x,L1.y), sL2=sp(L2.x,L2.y); gLines.appendChild(svgEl('line',{x1:sL1.x,y1:sL1.y,x2:sL2.x,y2:sL2.y,stroke:'#111827','stroke-width':'3.5'}));
+    // parallel to axis by P
+    if(state.showParallel){const par1=sp(-20,P.y), par2=sp(560,P.y); gLines.appendChild(svgEl('line',{x1:par1.x,y1:par1.y,x2:par2.x,y2:par2.y,stroke:'#0891b2','stroke-width':'2.5','stroke-dasharray':'8 6'}));}
+    // equal distances
+    if(state.showDistances){const sP=sp(P.x,P.y), sF=sp(F.x,F.y), sQ=sp(Q.x,Q.y); gSegments.appendChild(svgEl('line',{x1:sP.x,y1:sP.y,x2:sF.x,y2:sF.y,stroke:'#dc2626','stroke-width':'3.5'})); gSegments.appendChild(svgEl('line',{x1:sP.x,y1:sP.y,x2:sQ.x,y2:sQ.y,stroke:'#dc2626','stroke-width':'3.5'}));}
+    if(state.showSymmetric){
+      const sF=sp(F.x,F.y), sFs=sp(Fs.x,Fs.y), sN=sp(N.x,N.y);
+      gSegments.appendChild(svgEl('line',{x1:sF.x,y1:sF.y,x2:sFs.x,y2:sFs.y,stroke:'#ea580c','stroke-width':'3.5'}));
+      gPoints.appendChild(point(sFs,8,'#ea580c')); addText("F′", sFs.x+10, sFs.y-10, {size:'20', fill:'#c2410c'});
+      gPoints.appendChild(point(sN,8,'#16a34a')); addText('N', sN.x+12, sN.y-10, {size:'20', fill:'#166534'});
+    }
+    const sP=sp(P.x,P.y), sF=sp(F.x,F.y), sV=sp(V.x,V.y), sD=sp(D.x,D.y), sQ=sp(Q.x,Q.y), sM=sp(M.x,M.y);
+    gPoints.appendChild(point(sP,9,'#111827')); const pointP=gPoints.lastChild; pointP.id='pointP'; pointP.style.cursor='grab';
+    gPoints.appendChild(point(sF,7,'#7c3aed')); gPoints.appendChild(point(sV,7,'#334155')); gPoints.appendChild(point(sD,7,'#7c3aed')); gPoints.appendChild(point(sQ,7,'#dc2626')); gPoints.appendChild(point(sM,8,'#0891b2'));
+    addText('P', sP.x+12, sP.y-12, {size:'22'}); addText('F', sF.x+12, sF.y-12, {size:'20', fill:'#6d28d9'}); addText('V', sV.x+12, sV.y-12, {size:'20'}); addText('D', sD.x-10, sD.y-14, {size:'20', fill:'#6d28d9', anchor:'end'}); addText('Q', sQ.x-10, sQ.y-10, {size:'20', fill:'#b91c1c', anchor:'end'}); addText('M', sM.x+12, sM.y-10, {size:'20', fill:'#0f766e'});
+    addText('eje', sp(520,0).x-10, sp(520,0).y-14, {size:'18', fill:'#15803d', anchor:'end', weight:'500'});
+    addText('directriz', dir1.x+12, dir1.y+16, {size:'18', fill:'#6d28d9', weight:'500'});
+    addText('tangente', sL2.x-30, sL2.y-12, {size:'18', fill:'#111827', anchor:'end', weight:'500'});
+    if(state.showTangentV) addText('tangente por V', sp(0,250).x+12, sp(0,250).y-8, {size:'18', fill:'#15803d', weight:'500'});
+    if(state.showParallel) addText('paralela al eje', sp(520,P.y).x-10, sp(520,P.y).y-10, {size:'18', fill:'#0e7490', anchor:'end', weight:'500'});
+    el.coordP.textContent=`(${P.x.toFixed(0)}, ${P.y.toFixed(0)})`; el.coordF.textContent=`(${F.x.toFixed(0)}, ${F.y.toFixed(0)})`; el.coordM.textContent=`(${M.x.toFixed(0)}, ${M.y.toFixed(0)})`; el.coordN.textContent=`(${N.x.toFixed(0)}, ${N.y.toFixed(0)})`;
+    pointP.addEventListener('pointerdown', startDrag);
+  }
+  function startDrag(ev){state.dragging=true;state.playing=false;updateButtons();ev.target.setPointerCapture(ev.pointerId);moveDrag(ev);} 
+  function moveDrag(ev){if(!state.dragging)return; const m=toMath(ev.clientX,ev.clientY); state.t=clamp(m.y/(2*state.p),-2.5,2.5); render();}
+  function endDrag(){state.dragging=false;}
+  svg.addEventListener('pointermove',moveDrag); svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointerleave',endDrag);
+  el.playBtn.addEventListener('click',()=>{state.playing=true;state.lastTime=null;updateButtons();});
+  el.pauseBtn.addEventListener('click',()=>{state.playing=false;updateButtons();});
+  el.resetBtn.addEventListener('click',()=>{state.playing=false;state.p=70;state.t=0.9;state.speed=1.0;el.pRange.value=70;el.speedRange.value=1.0;updateButtons();render();});
+  el.pRange.addEventListener('input',()=>{state.p=+el.pRange.value; render();});
+  el.speedRange.addEventListener('input',()=>{state.speed=+el.speedRange.value; render();});
+  el.showDistances.addEventListener('change',()=>{state.showDistances=el.showDistances.checked; render();});
+  el.showTangentV.addEventListener('change',()=>{state.showTangentV=el.showTangentV.checked; render();});
+  el.showParallel.addEventListener('change',()=>{state.showParallel=el.showParallel.checked; render();});
+  el.showSymmetric.addEventListener('change',()=>{state.showSymmetric=el.showSymmetric.checked; render();});
+  function tick(ts){if(state.playing && !state.dragging){if(state.lastTime==null)state.lastTime=ts; const dt=(ts-state.lastTime)/1000; state.lastTime=ts; state.t += dt*state.speed*0.75; if(state.t>2.5) state.t=-2.5; render();} else {state.lastTime=ts;} requestAnimationFrame(tick);}
+  drawGrid(); updateButtons(); render(); requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
