@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hipérbola 3 · Tangentes desde un punto exterior</title>
+<style>
+  :root{--bg:#f5f7fb;--panel:#fff;--line:#d7dfec;--text:#1f2a3d;--muted:#5f6b7a;--blue:#2563eb;--green:#16a34a;--violet:#7c3aed;--orange:#ea580c;--red:#dc2626;--cyan:#0891b2}
+  *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1240px;margin:0 auto;padding:18px} h1{font-size:1.35rem;margin:0 0 6px} .subtitle{margin:0 0 14px;color:var(--muted);font-size:.98rem}
+  .layout{display:grid;grid-template-columns:minmax(320px,1fr) 320px;gap:16px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}.canvas-card{padding:12px}.side{padding:14px}
+  .section-title{font-weight:bold;margin:0 0 10px;font-size:1rem} svg{width:100%;height:auto;display:block;border-radius:10px;background:linear-gradient(180deg,#fcfdff,#f7faff)}
+  .control{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #eef2f8}.control:last-child{border-bottom:none;margin-bottom:0}
+  label{display:flex;justify-content:space-between;gap:8px;font-size:.95rem;margin-bottom:6px} input[type="range"]{width:100%}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px} button{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-size:.95rem} button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .checks{display:grid;gap:8px;font-size:.95rem}.checks label{display:flex;justify-content:flex-start;align-items:center;gap:8px;margin:0}.mini{font-size:.86rem;color:var(--muted);line-height:1.35}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.88rem;color:var(--muted)} .legend span{display:inline-flex;align-items:center;gap:6px}.swatch{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .pill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.pill{background:#f8fbff;border:1px solid #e6edf8;border-radius:12px;padding:10px}.pill .k{color:var(--muted);font-size:.82rem;margin-bottom:2px}.pill .v{font-size:1rem;font-weight:bold}
+  .footer-note{margin-top:14px;background:#fbfdff;border:1px dashed #d8e4f4;border-radius:12px;padding:10px;font-size:.9rem;color:var(--muted)} .msg{margin-top:8px;font-size:.9rem;color:#92400e;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:8px 10px;display:none}
+  @media (max-width:940px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Hipérbola · Tangentes desde un punto exterior</h1>
+  <p class="subtitle">Observa la construcción geométrica de las tangentes a la hipérbola desde un punto exterior, mediante la circunferencia auxiliar y la circunferencia focal.</p>
+  <div class="layout">
+    <div class="card canvas-card">
+      <svg id="scene" viewBox="0 0 980 660" aria-label="Animación interactiva de tangentes a una hipérbola desde un punto exterior">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#93a4bc"></path></marker>
+        </defs>
+        <rect x="0" y="0" width="980" height="660" fill="transparent"></rect>
+        <g id="grid"></g><g id="circles"></g><g id="axes"></g><g id="curve"></g><g id="helpers"></g><g id="tangents"></g><g id="points"></g><g id="labels"></g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2563eb"></i>Hipérbola</span>
+        <span><i class="swatch" style="background:#16a34a"></i>Circunferencia principal</span>
+        <span><i class="swatch" style="background:#7c3aed"></i>Circunferencia focal</span>
+        <span><i class="swatch" style="background:#ea580c"></i>Circunferencia auxiliar</span>
+        <span><i class="swatch" style="background:#111827"></i>Rectas tangentes</span>
+        <span><i class="swatch" style="background:#dc2626"></i>Puntos de tangencia</span>
+      </div>
+    </div>
+    <div class="card side">
+      <div class="control">
+        <div class="section-title">Controles</div>
+        <div class="btn-row"><button id="playBtn" class="primary">▶ Iniciar</button><button id="pauseBtn">⏸ Pausar</button><button id="resetBtn">↺ Reiniciar</button></div>
+        <div class="mini">Arrastra el punto exterior A a lo largo del eje. Se mantiene separado de la curva para distinguir las dos tangentes y sus puntos de tangencia.</div>
+      </div>
+      <div class="control"><label for="aRange"><span>Semieje real</span><strong id="aValue">210</strong></label><input id="aRange" type="range" min="160" max="260" value="210" step="1"></div>
+      <div class="control"><label for="bRange"><span>Semieje imaginario</span><strong id="bValue">130</strong></label><input id="bRange" type="range" min="90" max="190" value="130" step="1"></div>
+      <div class="control"><label for="speedRange"><span>Velocidad</span><strong id="speedValue">1.0×</strong></label><input id="speedRange" type="range" min="0.2" max="2.5" value="1.0" step="0.1"></div>
+      <div class="control"><div class="section-title">Mostrar</div><div class="checks">
+        <label><input type="checkbox" id="showPrincipal" checked> Circunferencia principal</label>
+        <label><input type="checkbox" id="showFocal" checked> Circunferencia focal</label>
+        <label><input type="checkbox" id="showAux" checked> Circunferencia auxiliar</label>
+        <label><input type="checkbox" id="showMidpoints" checked> Puntos medios auxiliares</label>
+      </div></div>
+      <div class="control"><div class="section-title">Lectura rápida</div><div class="pill-grid">
+        <div class="pill"><div class="k">Punto exterior A</div><div class="v" id="coordA">(0,0)</div></div>
+        <div class="pill"><div class="k">Tangencia T₁</div><div class="v" id="coordT1">(0,0)</div></div>
+        <div class="pill"><div class="k">Tangencia T₂</div><div class="v" id="coordT2">(0,0)</div></div>
+        <div class="pill"><div class="k">Intersecciones</div><div class="v" id="coordS">(—)</div></div>
+      </div></div>
+      <div id="msg" class="msg"></div>
+      <div class="footer-note">La circunferencia auxiliar, con centro en A y radio AF₁, corta a la circunferencia focal en dos puntos F₁′. Al unir cada uno de ellos con F₂ se obtienen dos direcciones auxiliares que alcanzan la hipérbola en los puntos de tangencia T₁ y T₂.</div>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+ const svg=document.getElementById('scene');
+ const gGrid=document.getElementById('grid'),gCircles=document.getElementById('circles'),gAxes=document.getElementById('axes'),gCurve=document.getElementById('curve'),gHelpers=document.getElementById('helpers'),gTangents=document.getElementById('tangents'),gPoints=document.getElementById('points'),gLabels=document.getElementById('labels');
+ const W=980,H=660,cx=490,cy=330;
+ const state={a:210,b:130,speed:1.0,playing:false,lastTime:null,dragging:false,orbitT:0.3,pointA:{x:-90,y:160},showPrincipal:true,showFocal:true,showAux:true,showMidpoints:true};
+ const el={aRange:document.getElementById('aRange'),bRange:document.getElementById('bRange'),speedRange:document.getElementById('speedRange'),aValue:document.getElementById('aValue'),bValue:document.getElementById('bValue'),speedValue:document.getElementById('speedValue'),coordA:document.getElementById('coordA'),coordT1:document.getElementById('coordT1'),coordT2:document.getElementById('coordT2'),coordS:document.getElementById('coordS'),playBtn:document.getElementById('playBtn'),pauseBtn:document.getElementById('pauseBtn'),resetBtn:document.getElementById('resetBtn'),showPrincipal:document.getElementById('showPrincipal'),showFocal:document.getElementById('showFocal'),showAux:document.getElementById('showAux'),showMidpoints:document.getElementById('showMidpoints'),msg:document.getElementById('msg')};
+ const sp=(x,y)=>({x:cx+x,y:cy-y});
+ const toMath=(clientX,clientY)=>{const r=svg.getBoundingClientRect();const sx=(clientX-r.left)*(W/r.width);const sy=(clientY-r.top)*(H/r.height);return{x:sx-cx,y:cy-sy}};
+ const svgEl=(tag,attrs={})=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;};
+ const dist=(P,Q)=>Math.hypot(P.x-Q.x,P.y-Q.y), midpoint=(P,Q)=>({x:(P.x+Q.x)/2,y:(P.y+Q.y)/2});
+ function drawGrid(){gGrid.innerHTML='';for(let x=30;x<=W;x+=40)gGrid.appendChild(svgEl('line',{x1:x,y1:0,x2:x,y2:H,stroke:'#ecf1f8','stroke-width':'1'}));for(let y=30;y<=H;y+=40)gGrid.appendChild(svgEl('line',{x1:0,y1:y,x2:W,y2:y,stroke:'#ecf1f8','stroke-width':'1'}));}
+ function updateButtons(){el.playBtn.classList.toggle('primary',state.playing);el.pauseBtn.classList.toggle('primary',!state.playing);} 
+ function addText(txt,x,y,opts={}){const t=svgEl('text',{x,y,fill:opts.fill||'#1f2a3d','font-size':opts.size||'20','font-weight':opts.weight||'600','text-anchor':opts.anchor||'start'});t.textContent=txt;gLabels.appendChild(t);} 
+ function point(pt,r,fill,stroke='white',sw=2){return svgEl('circle',{cx:pt.x,cy:pt.y,r,fill,stroke,'stroke-width':sw});}
+ function circleCircle(C1,r1,C2,r2){const dx=C2.x-C1.x,dy=C2.y-C1.y,d=Math.hypot(dx,dy);if(d===0||d>r1+r2||d<Math.abs(r1-r2))return[];const a=(r1*r1-r2*r2+d*d)/(2*d);const h2=r1*r1-a*a;if(h2<0)return[];const h=Math.sqrt(Math.max(0,h2));const xm=C1.x+a*dx/d, ym=C1.y+a*dy/d;const rx=-dy*(h/d), ry=dx*(h/d);return[{x:xm+rx,y:ym+ry},{x:xm-rx,y:ym-ry}];}
+ function lineFrom(P,Q){return {A:P.y-Q.y,B:Q.x-P.x,C:P.x*Q.y-Q.x*P.y};}
+ function tangentContact(line,a,b){return {x:-a*a*line.A/line.C, y:b*b*line.B/line.C};}
+ function ensureValid(P){
+   // A se mantiene en una zona oblicua, lejos de los dos ejes y de la curva.
+   // La animación toma un recorrido corto para conservar las dos tangentes visibles.
+   let A={x:Math.max(-118,Math.min(-58,P.x)),y:Math.max(140,Math.min(182,P.y))};
+   const c=Math.hypot(state.a,state.b), F1={x:-c,y:0}, F2={x:c,y:0};
+   const canDraw=Q=>{
+     const R=2*state.a, r=dist(Q,F1), d=dist(Q,F2);
+     if(d>R+r-0.001 || d<Math.abs(R-r)+0.001) return false;
+     const S=circleCircle(Q,r,F2,R);
+     if(S.length!==2)return false;
+     return S.every(H=>{
+       const M=midpoint(F1,H), L=lineFrom(Q,M);
+       if(Math.abs(L.C)<1)return false;
+       const T=tangentContact(L,state.a,state.b);
+       return Number.isFinite(T.x)&&Number.isFinite(T.y)&&Math.abs(T.x)<465&&Math.abs(T.y)<290;
+     });
+   };
+   if(canDraw(A))return A;
+   // Al variar los semiejes, buscar la posición oblicua visible más cercana.
+   let chosen=null,best=Infinity;
+   for(let y=140;y<=182;y+=3){for(let x=-118;x<=-58;x+=3){
+      const Q={x,y};if(!canDraw(Q))continue;
+      const score=(x-A.x)**2+(y-A.y)**2;
+      if(score<best){chosen=Q;best=score;}
+   }}
+   return chosen||A;
+ }
+ function setOrbit(){
+   state.pointA=ensureValid({x:-89+22*Math.cos(state.orbitT),y:159+15*Math.sin(state.orbitT)});
+ }
+ function render(){
+   const a=state.a,b=state.b,c=Math.sqrt(a*a+b*b),F1={x:-c,y:0},F2={x:c,y:0},O={x:0,y:0};
+   state.pointA=ensureValid(state.pointA); const A=state.pointA; const rAux=dist(A,F1), rFocal=2*a; const ints=circleCircle(A,rAux,F2,rFocal);
+   el.aValue.textContent=Math.round(a); el.bValue.textContent=Math.round(b); el.speedValue.textContent=state.speed.toFixed(1)+'×';
+   gCircles.innerHTML='';gAxes.innerHTML='';gCurve.innerHTML='';gHelpers.innerHTML='';gTangents.innerHTML='';gPoints.innerHTML='';gLabels.innerHTML='';
+   gAxes.appendChild(svgEl('line',{x1:40,y1:cy,x2:940,y2:cy,stroke:'#b7c9b5','stroke-width':'2','marker-end':'url(#arrow)'}));
+   gAxes.appendChild(svgEl('line',{x1:cx,y1:615,x2:cx,y2:45,stroke:'#d9e1ef','stroke-width':'1.5'}));
+   // asymptotes
+   const slope=b/a; const asx1=sp(-420,-420*slope), asx2=sp(420,420*slope), asy1=sp(-420,420*slope), asy2=sp(420,-420*slope);
+   gAxes.appendChild(svgEl('line',{x1:asx1.x,y1:asx1.y,x2:asx2.x,y2:asx2.y,stroke:'#c8d4e6','stroke-width':'2','stroke-dasharray':'8 6'}));
+   gAxes.appendChild(svgEl('line',{x1:asy1.x,y1:asy1.y,x2:asy2.x,y2:asy2.y,stroke:'#c8d4e6','stroke-width':'2','stroke-dasharray':'8 6'}));
+   // circles
+   if(state.showPrincipal) gCircles.appendChild(svgEl('circle',{cx:cx,cy:cy,r:a,fill:'none',stroke:'#16a34a','stroke-width':'3','stroke-dasharray':'10 8'}));
+   if(state.showFocal){const sF2=sp(F2.x,F2.y); gCircles.appendChild(svgEl('circle',{cx:sF2.x,cy:sF2.y,r:rFocal,fill:'none',stroke:'#7c3aed','stroke-width':'3','stroke-dasharray':'12 8'}));}
+   if(state.showAux){const sA=sp(A.x,A.y); gCircles.appendChild(svgEl('circle',{cx:sA.x,cy:sA.y,r:rAux,fill:'none',stroke:'#ea580c','stroke-width':'3','stroke-dasharray':'10 8'}));}
+   // hyperbola branches
+   function branch(sign){let d=''; for(let t=-2.2;t<=2.2+1e-9;t+=0.035){const x=sign*a*Math.cosh(t), y=b*Math.sinh(t); const s=sp(x,y); d+=(t===-2.2?'M':'L')+s.x+' '+s.y+' ';} return d;}
+   gCurve.appendChild(svgEl('path',{d:branch(-1),fill:'none',stroke:'#2563eb','stroke-width':'4'}));
+   gCurve.appendChild(svgEl('path',{d:branch(1),fill:'none',stroke:'#2563eb','stroke-width':'4'}));
+   const sO=sp(0,0), sF1=sp(F1.x,F1.y), sF2=sp(F2.x,F2.y), sA=sp(A.x,A.y), sV1=sp(-a,0), sV2=sp(a,0);
+   if(state.showAux) gHelpers.appendChild(svgEl('line',{x1:sA.x,y1:sA.y,x2:sF1.x,y2:sF1.y,stroke:'#ea580c','stroke-width':'2.5','stroke-dasharray':'7 6'}));
+   gPoints.appendChild(point(sO,5,'#334155','none',0)); gPoints.appendChild(point(sF1,7,'#7c3aed')); gPoints.appendChild(point(sF2,7,'#7c3aed')); gPoints.appendChild(point(sV1,7,'#2563eb')); gPoints.appendChild(point(sV2,7,'#2563eb')); const ptA=point(sA,9,'#111827'); ptA.id='pointA'; ptA.style.cursor='grab'; gPoints.appendChild(ptA);
+   addText('O',sO.x+10,sO.y-10,{size:'20'}); addText('F₁',sF1.x-8,sF1.y-14,{size:'20',anchor:'middle',fill:'#6d28d9'}); addText('F₂',sF2.x+2,sF2.y-14,{size:'20',anchor:'middle',fill:'#6d28d9'}); addText('A · punto exterior',sA.x+12,sA.y+28,{size:'20'}); addText('V₁',sV1.x-8,sV1.y-14,{size:'18',anchor:'middle',fill:'#1d4ed8'}); addText('V₂',sV2.x+2,sV2.y-14,{size:'18',anchor:'middle',fill:'#1d4ed8'});
+   if(state.showPrincipal) addText('circunferencia principal',cx+a-12,cy-14,{size:'18',fill:'#15803d',anchor:'end',weight:'500'});
+   if(state.showFocal) addText('circunferencia focal',sp(F2.x+rFocal,0).x-12,sp(F2.x+rFocal,0).y-14,{size:'18',fill:'#6d28d9',anchor:'end',weight:'500'});
+   if(state.showAux) addText('circunferencia auxiliar',sA.x+rAux-10,sA.y+24,{size:'18',fill:'#c2410c',anchor:'end',weight:'500'});
+
+   if(ints.length===2){
+     const [S1,S2]=ints.sort((p,q)=>q.y-p.y);
+     const M1=midpoint(F1,S1), M2=midpoint(F1,S2);
+     const L1=lineFrom(A,M1), L2=lineFrom(A,M2);
+     const T1=tangentContact(L1,a,b), T2=tangentContact(L2,a,b);
+     const sS1=sp(S1.x,S1.y), sS2=sp(S2.x,S2.y), sM1=sp(M1.x,M1.y), sM2=sp(M2.x,M2.y), sT1=sp(T1.x,T1.y), sT2=sp(T2.x,T2.y);
+     gHelpers.appendChild(svgEl('line',{x1:sF1.x,y1:sF1.y,x2:sS1.x,y2:sS1.y,stroke:'#f59e0b','stroke-width':'2.3','stroke-dasharray':'7 6'}));
+     gHelpers.appendChild(svgEl('line',{x1:sF1.x,y1:sF1.y,x2:sS2.x,y2:sS2.y,stroke:'#f59e0b','stroke-width':'2.3','stroke-dasharray':'7 6'}));
+     if(state.showMidpoints){
+       gPoints.appendChild(point(sM1,8,'#16a34a')); gPoints.appendChild(point(sM2,8,'#16a34a')); addText('M₁',sM1.x+12,sM1.y-10,{size:'18',fill:'#166534'}); addText('M₂',sM2.x+12,sM2.y-10,{size:'18',fill:'#166534'});
+     }
+     gPoints.appendChild(point(sS1,7,'#f59e0b')); gPoints.appendChild(point(sS2,7,'#f59e0b')); addText('F₁′₁',sS1.x+12,sS1.y-10,{size:'18',fill:'#92400e'}); addText('F₁′₂',sS2.x+12,sS2.y-10,{size:'18',fill:'#92400e'});
+     gTangents.appendChild(svgEl('line',{x1:sA.x,y1:sA.y,x2:sT1.x,y2:sT1.y,stroke:'#111827','stroke-width':'3.5'}));
+     gTangents.appendChild(svgEl('line',{x1:sA.x,y1:sA.y,x2:sT2.x,y2:sT2.y,stroke:'#111827','stroke-width':'3.5'}));
+     gPoints.appendChild(point(sT1,8,'#dc2626')); gPoints.appendChild(point(sT2,8,'#dc2626')); addText('T₁',sT1.x+12,sT1.y-10,{size:'20',fill:'#b91c1c'}); addText('T₂',sT2.x+12,sT2.y-10,{size:'20',fill:'#b91c1c'});
+     addText('recta tangente t₁',(sA.x+sT1.x)/2-15,(sA.y+sT1.y)/2-10,{size:'18',fill:'#111827',anchor:'end'}); addText('recta tangente t₂',(sA.x+sT2.x)/2-15,(sA.y+sT2.y)/2+26,{size:'18',fill:'#111827',anchor:'end'});
+     el.coordT1.textContent=`(${T1.x.toFixed(0)}, ${T1.y.toFixed(0)})`; el.coordT2.textContent=`(${T2.x.toFixed(0)}, ${T2.y.toFixed(0)})`; el.coordS.textContent=`(${S1.x.toFixed(0)}, ${S1.y.toFixed(0)})`;
+     el.msg.style.display='none';
+   } else {
+     el.coordT1.textContent='—'; el.coordT2.textContent='—'; el.coordS.textContent='—'; el.msg.textContent='Mueve el punto A para recuperar las dos tangentes y la construcción auxiliar.'; el.msg.style.display='block';
+   }
+   el.coordA.textContent=`(${A.x.toFixed(0)}, ${A.y.toFixed(0)})`;
+   ptA.addEventListener('pointerdown',startDrag);
+ }
+ function startDrag(ev){state.dragging=true;state.playing=false;updateButtons();svg.setPointerCapture(ev.pointerId);moveDrag(ev);} function moveDrag(ev){if(!state.dragging)return;state.pointA=ensureValid(toMath(ev.clientX,ev.clientY));render();} function endDrag(){state.dragging=false;}
+ svg.addEventListener('pointermove',moveDrag); svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointerleave',endDrag);
+ el.playBtn.addEventListener('click',()=>{state.playing=true;state.lastTime=null;updateButtons();}); el.pauseBtn.addEventListener('click',()=>{state.playing=false;updateButtons();});
+ el.resetBtn.addEventListener('click',()=>{state.playing=false;state.a=210;state.b=130;state.speed=1.0;state.orbitT=0.3;setOrbit();el.aRange.value=210;el.bRange.value=130;el.speedRange.value=1.0;updateButtons();render();});
+ el.aRange.addEventListener('input',()=>{state.a=+el.aRange.value;state.pointA=ensureValid(state.pointA);render();}); el.bRange.addEventListener('input',()=>{state.b=+el.bRange.value;state.pointA=ensureValid(state.pointA);render();}); el.speedRange.addEventListener('input',()=>{state.speed=+el.speedRange.value;render();});
+ el.showPrincipal.addEventListener('change',()=>{state.showPrincipal=el.showPrincipal.checked;render();}); el.showFocal.addEventListener('change',()=>{state.showFocal=el.showFocal.checked;render();}); el.showAux.addEventListener('change',()=>{state.showAux=el.showAux.checked;render();}); el.showMidpoints.addEventListener('change',()=>{state.showMidpoints=el.showMidpoints.checked;render();});
+ function tick(ts){if(state.playing&&!state.dragging){if(state.lastTime==null)state.lastTime=ts; const dt=(ts-state.lastTime)/1000; state.lastTime=ts; state.orbitT+=dt*state.speed*0.8; if(state.orbitT>Math.PI*2) state.orbitT-=Math.PI*2; setOrbit(); render();} else {state.lastTime=ts;} requestAnimationFrame(tick);} 
+ drawGrid(); setOrbit(); updateButtons(); render(); requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
