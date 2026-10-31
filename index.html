@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elipse 1 · Punto sobre la curva y parámetros</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --panel: #ffffff;
+    --line: #d7dfec;
+    --text: #1f2a3d;
+    --muted: #5f6b7a;
+    --accent: #2563eb;
+    --accent2: #16a34a;
+    --warn: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px;
+  }
+  h1 {
+    font-size: 1.35rem;
+    margin: 0 0 6px;
+  }
+  .subtitle {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 0.98rem;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) 320px;
+    gap: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .canvas-card {
+    padding: 12px;
+  }
+  .side {
+    padding: 14px;
+  }
+  .section-title {
+    font-weight: bold;
+    margin: 0 0 10px;
+    font-size: 1rem;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #fcfdff, #f7faff);
+  }
+  .control {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eef2f8;
+  }
+  .control:last-child { border-bottom: none; margin-bottom: 0; }
+  label {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  input[type="range"] { width: 100%; }
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  button {
+    border: 1px solid var(--line);
+    background: white;
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .checks {
+    display: grid;
+    gap: 8px;
+    font-size: 0.95rem;
+  }
+  .checks label {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+  .pill-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .pill {
+    background: #f8fbff;
+    border: 1px solid #e6edf8;
+    border-radius: 12px;
+    padding: 10px;
+  }
+  .pill .k {
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-bottom: 2px;
+  }
+  .pill .v {
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  .mini {
+    font-size: 0.86rem;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+  .footer-note {
+    margin-top: 14px;
+    background: #fbfdff;
+    border: 1px dashed #d8e4f4;
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  @media (max-width: 940px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Elipse · Punto sobre la curva y parámetros</h1>
+  <p class="subtitle">Explora cómo cambia la elipse y observa el comportamiento de un punto que pertenece a la curva.</p>
+
+  <div class="layout">
+    <div class="card canvas-card">
+      <svg id="scene" viewBox="0 0 900 620" aria-label="Animación interactiva de una elipse">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#9aa8bd"></path>
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="900" height="620" fill="transparent"></rect>
+        <g id="grid"></g>
+        <g id="axes"></g>
+        <g id="guides"></g>
+        <g id="ellipseGroup"></g>
+        <g id="segments"></g>
+        <g id="points"></g>
+        <g id="labels"></g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2563eb"></i>Elipse</span>
+        <span><i class="swatch" style="background:#dc2626"></i>Distancias a los focos</span>
+        <span><i class="swatch" style="background:#16a34a"></i>Ejes y referencias</span>
+      </div>
+    </div>
+
+    <div class="card side">
+      <div class="control">
+        <div class="section-title">Controles</div>
+        <div class="btn-row">
+          <button id="playBtn" class="primary">▶ Iniciar</button>
+          <button id="pauseBtn">⏸ Pausar</button>
+          <button id="resetBtn">↺ Reiniciar</button>
+        </div>
+        <div class="mini">También puedes arrastrar el punto P directamente sobre la curva.</div>
+      </div>
+
+      <div class="control">
+        <label for="aRange"><span>Semieje mayor</span><strong id="aValue">220</strong></label>
+        <input id="aRange" type="range" min="140" max="260" value="220" step="1">
+      </div>
+
+      <div class="control">
+        <label for="bRange"><span>Semieje menor</span><strong id="bValue">140</strong></label>
+        <input id="bRange" type="range" min="70" max="220" value="140" step="1">
+      </div>
+
+      <div class="control">
+        <label for="speedRange"><span>Velocidad</span><strong id="speedValue">1.0×</strong></label>
+        <input id="speedRange" type="range" min="0.2" max="2.5" value="1.0" step="0.1">
+      </div>
+
+      <div class="control">
+        <div class="section-title">Mostrar</div>
+        <div class="checks">
+          <label><input type="checkbox" id="showFoci" checked> Focos</label>
+          <label><input type="checkbox" id="showSegments" checked> Segmentos desde los focos</label>
+          <label><input type="checkbox" id="showAxes" checked> Ejes</label>
+          <label><input type="checkbox" id="showGuides" checked> Guías al eje horizontal y vertical</label>
+        </div>
+      </div>
+
+      <div class="control">
+        <div class="section-title">Lectura rápida</div>
+        <div class="pill-grid">
+          <div class="pill"><div class="k">Posición del punto</div><div class="v" id="coordValue">(0, 0)</div></div>
+          <div class="pill"><div class="k">Separación de focos</div><div class="v" id="focalSepValue">0</div></div>
+          <div class="pill"><div class="k">Forma de la curva</div><div class="v" id="shapeValue">Media</div></div>
+          <div class="pill"><div class="k">Excentricidad</div><div class="v" id="eccValue">0.00</div></div>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        Observa cómo cambia la forma de la elipse al modificar los semiejes y cómo se desplaza el punto P al recorrer la curva.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const svg = document.getElementById('scene');
+  const gGrid = document.getElementById('grid');
+  const gAxes = document.getElementById('axes');
+  const gGuides = document.getElementById('guides');
+  const gEllipse = document.getElementById('ellipseGroup');
+  const gSegments = document.getElementById('segments');
+  const gPoints = document.getElementById('points');
+  const gLabels = document.getElementById('labels');
+
+  const W = 900, H = 620;
+  const cx = 430, cy = 310;
+  const unit = 1;
+
+  const state = {
+    a: 220,
+    b: 140,
+    t: 0.65,
+    speed: 1.0,
+    playing: false,
+    dragging: false,
+    showFoci: true,
+    showSegments: true,
+    showAxes: true,
+    showGuides: true,
+    lastTime: null,
+  };
+
+  const el = {
+    aRange: document.getElementById('aRange'),
+    bRange: document.getElementById('bRange'),
+    speedRange: document.getElementById('speedRange'),
+    aValue: document.getElementById('aValue'),
+    bValue: document.getElementById('bValue'),
+    speedValue: document.getElementById('speedValue'),
+    coordValue: document.getElementById('coordValue'),
+    focalSepValue: document.getElementById('focalSepValue'),
+    shapeValue: document.getElementById('shapeValue'),
+    eccValue: document.getElementById('eccValue'),
+    playBtn: document.getElementById('playBtn'),
+    pauseBtn: document.getElementById('pauseBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    showFoci: document.getElementById('showFoci'),
+    showSegments: document.getElementById('showSegments'),
+    showAxes: document.getElementById('showAxes'),
+    showGuides: document.getElementById('showGuides'),
+  };
+
+  function svgEl(tag, attrs = {}) {
+    const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const [k,v] of Object.entries(attrs)) node.setAttribute(k, v);
+    return node;
+  }
+
+  function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+
+  function screenPoint(x, y) {
+    return { x: cx + x * unit, y: cy - y * unit };
+  }
+
+  function toMathPoint(clientX, clientY) {
+    const rect = svg.getBoundingClientRect();
+    const sx = (clientX - rect.left) * (W / rect.width);
+    const sy = (clientY - rect.top) * (H / rect.height);
+    return { x: sx - cx, y: cy - sy };
+  }
+
+  function drawGrid() {
+    gGrid.innerHTML = '';
+    for (let x = 30; x <= W; x += 40) {
+      const line = svgEl('line', { x1:x, y1:0, x2:x, y2:H, stroke:'#ecf1f8', 'stroke-width':'1' });
+      gGrid.appendChild(line);
+    }
+    for (let y = 30; y <= H; y += 40) {
+      const line = svgEl('line', { x1:0, y1:y, x2:W, y2:y, stroke:'#ecf1f8', 'stroke-width':'1' });
+      gGrid.appendChild(line);
+    }
+  }
+
+  function shapeLabel(e) {
+    if (e < 0.35) return 'Poco alargada';
+    if (e < 0.7) return 'Media';
+    return 'Muy alargada';
+  }
+
+  function syncValues() {
+    if (state.b > state.a - 5) {
+      state.b = state.a - 5;
+      el.bRange.value = state.b;
+    }
+    el.aValue.textContent = Math.round(state.a);
+    el.bValue.textContent = Math.round(state.b);
+    el.speedValue.textContent = state.speed.toFixed(1) + '×';
+  }
+
+  function render() {
+    syncValues();
+    const a = state.a, b = state.b;
+    const c = Math.sqrt(Math.max(0, a*a - b*b));
+    const e = c / a;
+    const x = a * Math.cos(state.t);
+    const y = b * Math.sin(state.t);
+    const P = screenPoint(x, y);
+    const F1 = screenPoint(-c, 0);
+    const F2 = screenPoint(c, 0);
+    const C = screenPoint(0,0);
+    const leftV = screenPoint(-a,0), rightV = screenPoint(a,0), topV = screenPoint(0,b), botV = screenPoint(0,-b);
+
+    gAxes.innerHTML = '';
+    gGuides.innerHTML = '';
+    gEllipse.innerHTML = '';
+    gSegments.innerHTML = '';
+    gPoints.innerHTML = '';
+    gLabels.innerHTML = '';
+
+    if (state.showAxes) {
+      const xAxis = svgEl('line', { x1:40, y1:cy, x2:860, y2:cy, stroke:'#9cc6a9', 'stroke-width':'2', 'marker-end':'url(#arrow)' });
+      const yAxis = svgEl('line', { x1:cx, y1:580, x2:cx, y2:40, stroke:'#9cc6a9', 'stroke-width':'2', 'marker-end':'url(#arrow)' });
+      gAxes.append(xAxis, yAxis);
+      const major = svgEl('line', { x1:leftV.x, y1:leftV.y, x2:rightV.x, y2:rightV.y, stroke:'#16a34a', 'stroke-width':'3', 'stroke-dasharray':'10 7' });
+      const minor = svgEl('line', { x1:topV.x, y1:topV.y, x2:botV.x, y2:botV.y, stroke:'#16a34a', 'stroke-width':'3', 'stroke-dasharray':'10 7' });
+      gAxes.append(major, minor);
+    }
+
+    if (state.showGuides) {
+      const guide1 = svgEl('line', { x1:P.x, y1:P.y, x2:P.x, y2:cy, stroke:'#aebbd0', 'stroke-width':'2', 'stroke-dasharray':'6 6' });
+      const guide2 = svgEl('line', { x1:P.x, y1:P.y, x2:cx, y2:P.y, stroke:'#aebbd0', 'stroke-width':'2', 'stroke-dasharray':'6 6' });
+      gGuides.append(guide1, guide2);
+    }
+
+    const ellipse = svgEl('ellipse', {
+      cx: cx, cy: cy, rx: a, ry: b,
+      fill:'rgba(37,99,235,0.08)',
+      stroke:'#2563eb', 'stroke-width':'4'
+    });
+    gEllipse.appendChild(ellipse);
+
+    if (state.showSegments) {
+      const s1 = svgEl('line', { x1:F1.x, y1:F1.y, x2:P.x, y2:P.y, stroke:'#dc2626', 'stroke-width':'3.5' });
+      const s2 = svgEl('line', { x1:F2.x, y1:F2.y, x2:P.x, y2:P.y, stroke:'#dc2626', 'stroke-width':'3.5' });
+      gSegments.append(s1, s2);
+    }
+
+    const centerPt = svgEl('circle', { cx:C.x, cy:C.y, r:5, fill:'#334155' });
+    const pointP = svgEl('circle', { cx:P.x, cy:P.y, r:9, fill:'#111827', stroke:'white', 'stroke-width':'2', style:'cursor:grab;' });
+    pointP.id = 'pointP';
+    gPoints.appendChild(centerPt);
+
+    if (state.showFoci) {
+      const f1 = svgEl('circle', { cx:F1.x, cy:F1.y, r:7, fill:'#7c3aed', stroke:'white', 'stroke-width':'2' });
+      const f2 = svgEl('circle', { cx:F2.x, cy:F2.y, r:7, fill:'#7c3aed', stroke:'white', 'stroke-width':'2' });
+      gPoints.append(f1, f2);
+    }
+
+    gPoints.appendChild(pointP);
+
+    function addText(txt, x, y, opts = {}) {
+      const t = svgEl('text', {
+        x, y,
+        fill: opts.fill || '#1f2a3d',
+        'font-size': opts.size || '20',
+        'font-weight': opts.weight || '600',
+        'text-anchor': opts.anchor || 'start'
+      });
+      t.textContent = txt;
+      gLabels.appendChild(t);
+    }
+
+    addText('C', C.x + 10, C.y - 10, { size: '20' });
+    addText('P', P.x + 12, P.y - 12, { size: '22' });
+    if (state.showFoci) {
+      addText('F₁', F1.x - 6, F1.y - 14, { size: '20', anchor:'middle' });
+      addText('F₂', F2.x + 2, F2.y - 14, { size: '20', anchor:'middle' });
+    }
+    if (state.showAxes) {
+      addText('eje mayor', rightV.x - 10, rightV.y - 16, { size: '18', fill:'#15803d', anchor:'end', weight:'500' });
+      addText('eje menor', topV.x + 12, topV.y + 22, { size: '18', fill:'#15803d', weight:'500' });
+    }
+
+    const dist1 = Math.hypot(x + c, y);
+    const dist2 = Math.hypot(x - c, y);
+
+    el.coordValue.textContent = `(${x.toFixed(0)}, ${y.toFixed(0)})`;
+    el.focalSepValue.textContent = (2*c).toFixed(1);
+    el.shapeValue.textContent = shapeLabel(e);
+    el.eccValue.textContent = e.toFixed(2);
+
+    pointP.addEventListener('pointerdown', startDrag);
+  }
+
+  function startDrag(ev) {
+    state.dragging = true;
+    state.playing = false;
+    updateButtons();
+    ev.target.setPointerCapture(ev.pointerId);
+    moveDrag(ev);
+  }
+
+  function moveDrag(ev) {
+    if (!state.dragging) return;
+    const p = toMathPoint(ev.clientX, ev.clientY);
+    state.t = Math.atan2(p.y / state.b, p.x / state.a);
+    render();
+  }
+
+  function endDrag() {
+    state.dragging = false;
+  }
+
+  svg.addEventListener('pointermove', moveDrag);
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointerleave', endDrag);
+
+  function updateButtons() {
+    el.playBtn.classList.toggle('primary', !state.playing);
+    el.pauseBtn.classList.toggle('primary', state.playing === false && state.lastTime !== null && !state.dragging);
+  }
+
+  el.playBtn.addEventListener('click', () => {
+    state.playing = true;
+    state.lastTime = null;
+    updateButtons();
+  });
+
+  el.pauseBtn.addEventListener('click', () => {
+    state.playing = false;
+    updateButtons();
+  });
+
+  el.resetBtn.addEventListener('click', () => {
+    state.playing = false;
+    state.t = 0.65;
+    state.a = 220;
+    state.b = 140;
+    state.speed = 1.0;
+    el.aRange.value = state.a;
+    el.bRange.value = state.b;
+    el.speedRange.value = state.speed;
+    updateButtons();
+    render();
+  });
+
+  el.aRange.addEventListener('input', () => {
+    state.a = +el.aRange.value;
+    if (state.b >= state.a) {
+      state.b = state.a - 5;
+      el.bRange.value = state.b;
+    }
+    render();
+  });
+
+  el.bRange.addEventListener('input', () => {
+    state.b = Math.min(+el.bRange.value, state.a - 5);
+    el.bRange.value = state.b;
+    render();
+  });
+
+  el.speedRange.addEventListener('input', () => {
+    state.speed = +el.speedRange.value;
+    render();
+  });
+
+  el.showFoci.addEventListener('change', () => { state.showFoci = el.showFoci.checked; render(); });
+  el.showSegments.addEventListener('change', () => { state.showSegments = el.showSegments.checked; render(); });
+  el.showAxes.addEventListener('change', () => { state.showAxes = el.showAxes.checked; render(); });
+  el.showGuides.addEventListener('change', () => { state.showGuides = el.showGuides.checked; render(); });
+
+  function tick(ts) {
+    if (state.playing && !state.dragging) {
+      if (state.lastTime == null) state.lastTime = ts;
+      const dt = (ts - state.lastTime) / 1000;
+      state.lastTime = ts;
+      state.t += dt * state.speed * 0.9;
+      if (state.t > Math.PI * 2) state.t -= Math.PI * 2;
+      render();
+    } else {
+      state.lastTime = ts;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  drawGrid();
+  updateButtons();
+  render();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
