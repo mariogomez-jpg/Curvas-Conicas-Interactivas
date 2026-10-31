@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elipse 2 · Tangente, circunferencia principal y circunferencia focal</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --panel:#fff; --line:#d7dfec; --text:#1f2a3d; --muted:#5f6b7a;
+    --blue:#2563eb; --green:#16a34a; --violet:#7c3aed; --orange:#ea580c; --red:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1240px;margin:0 auto;padding:18px}
+  h1{font-size:1.35rem;margin:0 0 6px}
+  .subtitle{margin:0 0 14px;color:var(--muted);font-size:.98rem}
+  .layout{display:grid;grid-template-columns:minmax(320px,1fr) 320px;gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .canvas-card{padding:12px}
+  .side{padding:14px}
+  .section-title{font-weight:bold;margin:0 0 10px;font-size:1rem}
+  svg{width:100%;height:auto;display:block;border-radius:10px;background:linear-gradient(180deg,#fcfdff,#f7faff)}
+  .control{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #eef2f8}
+  .control:last-child{border-bottom:none;margin-bottom:0}
+  label{display:flex;justify-content:space-between;gap:8px;font-size:.95rem;margin-bottom:6px}
+  input[type="range"]{width:100%}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  button{border:1px solid var(--line);background:white;color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-size:.95rem}
+  button.primary{background:var(--blue);border-color:var(--blue);color:white}
+  .checks{display:grid;gap:8px;font-size:.95rem}
+  .checks label{display:flex;justify-content:flex-start;align-items:center;gap:8px;margin:0}
+  .mini{font-size:.86rem;color:var(--muted);line-height:1.35}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.88rem;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .pill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .pill{background:#f8fbff;border:1px solid #e6edf8;border-radius:12px;padding:10px}
+  .pill .k{color:var(--muted);font-size:.82rem;margin-bottom:2px}
+  .pill .v{font-size:1rem;font-weight:bold}
+  .footer-note{margin-top:14px;background:#fbfdff;border:1px dashed #d8e4f4;border-radius:12px;padding:10px;font-size:.9rem;color:var(--muted)}
+  @media (max-width: 940px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Elipse · Tangente, circunferencia principal y circunferencia focal</h1>
+  <p class="subtitle">Observa cómo cambia la tangente en un punto de la elipse y cómo se relaciona con el simétrico de un foco y con su punto medio.</p>
+
+  <div class="layout">
+    <div class="card canvas-card">
+      <svg id="scene" viewBox="0 0 980 660" aria-label="Animación interactiva de tangente a una elipse">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#93a4bc"></path>
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="980" height="660" fill="transparent"></rect>
+        <g id="grid"></g>
+        <g id="circles"></g>
+        <g id="axes"></g>
+        <g id="ellipseG"></g>
+        <g id="geometry"></g>
+        <g id="points"></g>
+        <g id="labels"></g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2563eb"></i>Elipse</span>
+        <span><i class="swatch" style="background:#111827"></i>Tangente</span>
+        <span><i class="swatch" style="background:#16a34a"></i>Circunferencia principal</span>
+        <span><i class="swatch" style="background:#7c3aed"></i>Circunferencia focal</span>
+        <span><i class="swatch" style="background:#ea580c"></i>Segmento foco–simétrico</span>
+      </div>
+    </div>
+
+    <div class="card side">
+      <div class="control">
+        <div class="section-title">Controles</div>
+        <div class="btn-row">
+          <button id="playBtn" class="primary">▶ Iniciar</button>
+          <button id="pauseBtn">⏸ Pausar</button>
+          <button id="resetBtn">↺ Reiniciar</button>
+        </div>
+        <div class="mini">Puedes arrastrar el punto P directamente sobre la elipse.</div>
+      </div>
+
+      <div class="control">
+        <label for="aRange"><span>Semieje mayor</span><strong id="aValue">240</strong></label>
+        <input id="aRange" type="range" min="160" max="280" value="240" step="1">
+      </div>
+      <div class="control">
+        <label for="bRange"><span>Semieje menor</span><strong id="bValue">150</strong></label>
+        <input id="bRange" type="range" min="80" max="230" value="150" step="1">
+      </div>
+      <div class="control">
+        <label for="speedRange"><span>Velocidad</span><strong id="speedValue">1.0×</strong></label>
+        <input id="speedRange" type="range" min="0.2" max="2.5" value="1.0" step="0.1">
+      </div>
+
+      <div class="control">
+        <div class="section-title">Mostrar</div>
+        <div class="checks">
+          <label><input type="checkbox" id="showPrincipal" checked> Circunferencia principal</label>
+          <label><input type="checkbox" id="showFocal" checked> Circunferencia focal</label>
+          <label><input type="checkbox" id="showSegment" checked> Segmento foco–simétrico</label>
+          <label><input type="checkbox" id="showGuide" checked> Radio al punto medio</label>
+        </div>
+      </div>
+
+      <div class="control">
+        <div class="section-title">Lectura rápida</div>
+        <div class="pill-grid">
+          <div class="pill"><div class="k">Punto sobre la curva</div><div class="v" id="pValue">(0,0)</div></div>
+          <div class="pill"><div class="k">Punto medio</div><div class="v" id="mValue">(0,0)</div></div>
+          <div class="pill"><div class="k">Simétrico del foco</div><div class="v" id="sValue">(0,0)</div></div>
+          <div class="pill"><div class="k">Forma de la elipse</div><div class="v" id="shapeValue">Media</div></div>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        Observa cómo, al variar el punto P, la tangente cambia; aun así, el punto medio y el simétrico del foco siguen recorridos fijos.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const svg = document.getElementById('scene');
+  const gGrid = document.getElementById('grid');
+  const gCircles = document.getElementById('circles');
+  const gAxes = document.getElementById('axes');
+  const gEllipse = document.getElementById('ellipseG');
+  const gGeometry = document.getElementById('geometry');
+  const gPoints = document.getElementById('points');
+  const gLabels = document.getElementById('labels');
+
+  const W=980, H=660, cx=450, cy=330;
+  const state = {
+    a:240, b:150, t:0.7, speed:1.0, playing:false, dragging:false, lastTime:null,
+    showPrincipal:true, showFocal:true, showSegment:true, showGuide:true
+  };
+
+  const el = {
+    aRange:document.getElementById('aRange'), bRange:document.getElementById('bRange'), speedRange:document.getElementById('speedRange'),
+    aValue:document.getElementById('aValue'), bValue:document.getElementById('bValue'), speedValue:document.getElementById('speedValue'),
+    pValue:document.getElementById('pValue'), mValue:document.getElementById('mValue'), sValue:document.getElementById('sValue'), shapeValue:document.getElementById('shapeValue'),
+    playBtn:document.getElementById('playBtn'), pauseBtn:document.getElementById('pauseBtn'), resetBtn:document.getElementById('resetBtn'),
+    showPrincipal:document.getElementById('showPrincipal'), showFocal:document.getElementById('showFocal'), showSegment:document.getElementById('showSegment'), showGuide:document.getElementById('showGuide')
+  };
+
+  function svgEl(tag, attrs={}){ const n=document.createElementNS('http://www.w3.org/2000/svg',tag); for(const[k,v] of Object.entries(attrs))n.setAttribute(k,v); return n; }
+  function screenPoint(x,y){ return {x:cx+x, y:cy-y}; }
+  function toMathPoint(clientX, clientY){ const r=svg.getBoundingClientRect(); const sx=(clientX-r.left)*(W/r.width); const sy=(clientY-r.top)*(H/r.height); return {x:sx-cx, y:cy-sy}; }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function shapeLabel(e){ if(e<0.35) return 'Poco alargada'; if(e<0.7) return 'Media'; return 'Muy alargada'; }
+  function drawGrid(){
+    gGrid.innerHTML='';
+    for(let x=30;x<=W;x+=40) gGrid.appendChild(svgEl('line',{x1:x,y1:0,x2:x,y2:H,stroke:'#ecf1f8','stroke-width':'1'}));
+    for(let y=30;y<=H;y+=40) gGrid.appendChild(svgEl('line',{x1:0,y1:y,x2:W,y2:y,stroke:'#ecf1f8','stroke-width':'1'}));
+  }
+
+  function updateButtons(){
+    el.playBtn.classList.toggle('primary', state.playing);
+    el.pauseBtn.classList.toggle('primary', !state.playing);
+  }
+
+  function reflectPointAcrossLine(P, A, B, C){
+    // line A x + B y + C = 0
+    const den = A*A + B*B;
+    const d = (A*P.x + B*P.y + C) / den;
+    return { x: P.x - 2*A*d, y: P.y - 2*B*d };
+  }
+
+  function render(){
+    if(state.b >= state.a) { state.b = state.a - 5; el.bRange.value = state.b; }
+    const a=state.a, b=state.b, c=Math.sqrt(Math.max(0,a*a-b*b)), e=c/a;
+    el.aValue.textContent = Math.round(a); el.bValue.textContent = Math.round(b); el.speedValue.textContent = state.speed.toFixed(1)+'×'; el.shapeValue.textContent = shapeLabel(e);
+
+    const x0 = a*Math.cos(state.t), y0 = b*Math.sin(state.t);
+    const P = {x:x0, y:y0};
+    const F1 = {x:-c, y:0};
+    const F2 = {x:c, y:0};
+
+    // Tangent line at P: A x + B y + C = 0
+    const A = x0/(a*a), B = y0/(b*b), C = -1;
+    const dir = {x:-B, y:A};
+    const norm = Math.hypot(dir.x, dir.y) || 1;
+    const s = 1800;
+    const L1 = {x:x0 - s*dir.x/norm, y:y0 - s*dir.y/norm};
+    const L2 = {x:x0 + s*dir.x/norm, y:y0 + s*dir.y/norm};
+
+    const F1s = reflectPointAcrossLine(F1, A, B, C);
+    const M = {x:(F1.x+F1s.x)/2, y:(F1.y+F1s.y)/2};
+
+    gCircles.innerHTML=''; gAxes.innerHTML=''; gEllipse.innerHTML=''; gGeometry.innerHTML=''; gPoints.innerHTML=''; gLabels.innerHTML='';
+
+    // axes
+    gAxes.appendChild(svgEl('line',{x1:50,y1:cy,x2:920,y2:cy,stroke:'#b7c9b5','stroke-width':'2','marker-end':'url(#arrow)'}));
+    gAxes.appendChild(svgEl('line',{x1:cx,y1:615,x2:cx,y2:45,stroke:'#b7c9b5','stroke-width':'2','marker-end':'url(#arrow)'}));
+
+    if(state.showPrincipal){
+      gCircles.appendChild(svgEl('circle',{cx:cx, cy:cy, r:a, fill:'none', stroke:'#16a34a', 'stroke-width':'3', 'stroke-dasharray':'10 8'}));
+    }
+    if(state.showFocal){
+      const S2 = screenPoint(F2.x, F2.y);
+      gCircles.appendChild(svgEl('circle',{cx:S2.x, cy:S2.y, r:2*a, fill:'none', stroke:'#7c3aed', 'stroke-width':'3', 'stroke-dasharray':'11 8'}));
+    }
+
+    gEllipse.appendChild(svgEl('ellipse',{cx:cx,cy:cy,rx:a,ry:b,fill:'rgba(37,99,235,0.08)',stroke:'#2563eb','stroke-width':'4'}));
+
+    const l1=screenPoint(L1.x,L1.y), l2=screenPoint(L2.x,L2.y), pS=screenPoint(P.x,P.y), f1S=screenPoint(F1.x,F1.y), f2S=screenPoint(F2.x,F2.y), f1sS=screenPoint(F1s.x,F1s.y), mS=screenPoint(M.x,M.y), cS=screenPoint(0,0);
+
+    // tangent
+    gGeometry.appendChild(svgEl('line',{x1:l1.x,y1:l1.y,x2:l2.x,y2:l2.y,stroke:'#111827','stroke-width':'3.5'}));
+
+    if(state.showSegment){
+      gGeometry.appendChild(svgEl('line',{x1:f1S.x,y1:f1S.y,x2:f1sS.x,y2:f1sS.y,stroke:'#ea580c','stroke-width':'3.5'}));
+    }
+    if(state.showGuide){
+      gGeometry.appendChild(svgEl('line',{x1:cS.x,y1:cS.y,x2:mS.x,y2:mS.y,stroke:'#16a34a','stroke-width':'2.5','stroke-dasharray':'7 6'}));
+    }
+
+    function point(pt, r, fill, stroke='white', sw=2){ return svgEl('circle',{cx:pt.x,cy:pt.y,r,fill,stroke,'stroke-width':sw}); }
+    gPoints.appendChild(point(cS,5,'#334155','none',0));
+    gPoints.appendChild(point(f1S,7,'#7c3aed'));
+    gPoints.appendChild(point(f2S,7,'#7c3aed'));
+    gPoints.appendChild(point(f1sS,8,'#dc2626'));
+    gPoints.appendChild(point(mS,8,'#16a34a'));
+    const pointP = point(pS,9,'#111827'); pointP.id='pointP'; pointP.style.cursor='grab'; gPoints.appendChild(pointP);
+
+    function addText(txt, x, y, opts={}){
+      const t=svgEl('text',{x,y,fill:opts.fill||'#1f2a3d','font-size':opts.size||'20','font-weight':opts.weight||'600','text-anchor':opts.anchor||'start'});
+      t.textContent=txt; gLabels.appendChild(t);
+    }
+    addText('C', cS.x+10, cS.y-10, {size:'20'});
+    addText('P', pS.x+12, pS.y-12, {size:'22'});
+    addText('F₁', f1S.x-6, f1S.y-14, {size:'20', anchor:'middle'});
+    addText('F₂', f2S.x+2, f2S.y-14, {size:'20', anchor:'middle'});
+    addText('F₁′', f1sS.x+10, f1sS.y-12, {size:'20', fill:'#b91c1c'});
+    addText('M', mS.x+12, mS.y-10, {size:'20', fill:'#166534'});
+    if(state.showPrincipal) addText('circunferencia principal', cx+a-10, cy-14, {size:'18', fill:'#15803d', anchor:'end', weight:'500'});
+    if(state.showFocal) addText('circunferencia focal', f2S.x+2*a-6, f2S.y-12, {size:'18', fill:'#6d28d9', anchor:'end', weight:'500'});
+    addText('tangente', l2.x-20, l2.y-10, {size:'18', fill:'#111827', anchor:'end', weight:'500'});
+
+    el.pValue.textContent = `(${P.x.toFixed(0)}, ${P.y.toFixed(0)})`;
+    el.mValue.textContent = `(${M.x.toFixed(0)}, ${M.y.toFixed(0)})`;
+    el.sValue.textContent = `(${F1s.x.toFixed(0)}, ${F1s.y.toFixed(0)})`;
+
+    pointP.addEventListener('pointerdown', startDrag);
+  }
+
+  function startDrag(ev){ state.dragging=true; state.playing=false; updateButtons(); ev.target.setPointerCapture(ev.pointerId); moveDrag(ev); }
+  function moveDrag(ev){ if(!state.dragging) return; const p=toMathPoint(ev.clientX, ev.clientY); state.t=Math.atan2(p.y/state.b, p.x/state.a); render(); }
+  function endDrag(){ state.dragging=false; }
+  svg.addEventListener('pointermove', moveDrag); svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointerleave', endDrag);
+
+  el.playBtn.addEventListener('click', ()=>{ state.playing=true; state.lastTime=null; updateButtons(); });
+  el.pauseBtn.addEventListener('click', ()=>{ state.playing=false; updateButtons(); });
+  el.resetBtn.addEventListener('click', ()=>{
+    state.playing=false; state.a=240; state.b=150; state.t=0.7; state.speed=1.0;
+    el.aRange.value=state.a; el.bRange.value=state.b; el.speedRange.value=state.speed; render(); updateButtons();
+  });
+  el.aRange.addEventListener('input', ()=>{ state.a=+el.aRange.value; if(state.b>=state.a){state.b=state.a-5; el.bRange.value=state.b;} render(); });
+  el.bRange.addEventListener('input', ()=>{ state.b=Math.min(+el.bRange.value, state.a-5); el.bRange.value=state.b; render(); });
+  el.speedRange.addEventListener('input', ()=>{ state.speed=+el.speedRange.value; render(); });
+  el.showPrincipal.addEventListener('change', ()=>{ state.showPrincipal=el.showPrincipal.checked; render(); });
+  el.showFocal.addEventListener('change', ()=>{ state.showFocal=el.showFocal.checked; render(); });
+  el.showSegment.addEventListener('change', ()=>{ state.showSegment=el.showSegment.checked; render(); });
+  el.showGuide.addEventListener('change', ()=>{ state.showGuide=el.showGuide.checked; render(); });
+
+  function tick(ts){
+    if(state.playing && !state.dragging){
+      if(state.lastTime==null) state.lastTime=ts;
+      const dt=(ts-state.lastTime)/1000; state.lastTime=ts;
+      state.t += dt*state.speed*0.9; if(state.t>Math.PI*2) state.t -= Math.PI*2; render();
+    } else state.lastTime=ts;
+    requestAnimationFrame(tick);
+  }
+
+  drawGrid(); updateButtons(); render(); requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
