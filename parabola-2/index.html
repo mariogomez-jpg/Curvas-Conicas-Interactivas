@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parábola 2 · Tangentes desde un punto exterior</title>
+<style>
+  :root{--bg:#f5f7fb;--panel:#fff;--line:#d7dfec;--text:#1f2a3d;--muted:#5f6b7a;--blue:#2563eb;--green:#16a34a;--violet:#7c3aed;--orange:#ea580c;--red:#dc2626;--cyan:#0891b2}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1240px;margin:0 auto;padding:18px}
+  h1{font-size:1.35rem;margin:0 0 6px}
+  .subtitle{margin:0 0 14px;color:var(--muted);font-size:.98rem}
+  .layout{display:grid;grid-template-columns:minmax(320px,1fr) 320px;gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .canvas-card{padding:12px}.side{padding:14px}
+  .section-title{font-weight:bold;margin:0 0 10px;font-size:1rem}
+  svg{width:100%;height:auto;display:block;border-radius:10px;background:linear-gradient(180deg,#fcfdff,#f7faff)}
+  .control{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #eef2f8}.control:last-child{border-bottom:none;margin-bottom:0}
+  label{display:flex;justify-content:space-between;gap:8px;font-size:.95rem;margin-bottom:6px}
+  input[type="range"]{width:100%}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  button{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-size:.95rem}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .checks{display:grid;gap:8px;font-size:.95rem}.checks label{display:flex;justify-content:flex-start;align-items:center;gap:8px;margin:0}
+  .mini{font-size:.86rem;color:var(--muted);line-height:1.35}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.88rem;color:var(--muted)} .legend span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .pill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .pill{background:#f8fbff;border:1px solid #e6edf8;border-radius:12px;padding:10px}.pill .k{color:var(--muted);font-size:.82rem;margin-bottom:2px}.pill .v{font-size:1rem;font-weight:bold}
+  .footer-note{margin-top:14px;background:#fbfdff;border:1px dashed #d8e4f4;border-radius:12px;padding:10px;font-size:.9rem;color:var(--muted)}
+  .msg{margin-top:8px;font-size:.9rem;color:#92400e;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:8px 10px;display:none}
+  @media (max-width:940px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Parábola · Tangentes desde un punto exterior</h1>
+  <p class="subtitle">Observa la construcción geométrica de las dos tangentes a la parábola trazadas desde un punto exterior.</p>
+  <div class="layout">
+    <div class="card canvas-card">
+      <svg id="scene" viewBox="0 0 980 660" aria-label="Animación interactiva de tangentes a una parábola desde un punto exterior">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#93a4bc"></path>
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="980" height="660" fill="transparent"></rect>
+        <g id="grid"></g>
+        <g id="axes"></g>
+        <g id="curve"></g>
+        <g id="circles"></g>
+        <g id="helpers"></g>
+        <g id="tangents"></g>
+        <g id="points"></g>
+        <g id="labels"></g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2563eb"></i>Parábola</span>
+        <span><i class="swatch" style="background:#7c3aed"></i>Directriz</span>
+        <span><i class="swatch" style="background:#ea580c"></i>Circunferencia auxiliar</span>
+        <span><i class="swatch" style="background:#111827"></i>Tangentes</span>
+        <span><i class="swatch" style="background:#0891b2"></i>Paralelas al eje</span>
+        <span><i class="swatch" style="background:#dc2626"></i>Puntos de tangencia</span>
+      </div>
+    </div>
+    <div class="card side">
+      <div class="control">
+        <div class="section-title">Controles</div>
+        <div class="btn-row">
+          <button id="playBtn" class="primary">▶ Iniciar</button>
+          <button id="pauseBtn">⏸ Pausar</button>
+          <button id="resetBtn">↺ Reiniciar</button>
+        </div>
+        <div class="mini">Puedes arrastrar el punto exterior A y observar cómo cambian las dos tangentes.</div>
+      </div>
+      <div class="control">
+        <label for="pRange"><span>Separación foco–vértice–directriz</span><strong id="pValue">70</strong></label>
+        <input id="pRange" type="range" min="35" max="120" value="70" step="1">
+      </div>
+      <div class="control">
+        <label for="speedRange"><span>Velocidad</span><strong id="speedValue">1.0×</strong></label>
+        <input id="speedRange" type="range" min="0.2" max="2.5" value="1.0" step="0.1">
+      </div>
+      <div class="control">
+        <div class="section-title">Mostrar</div>
+        <div class="checks">
+          <label><input type="checkbox" id="showCircle" checked> Circunferencia auxiliar</label>
+          <label><input type="checkbox" id="showIntersections" checked> Cortes sobre la directriz</label>
+          <label><input type="checkbox" id="showParallels" checked> Paralelas al eje</label>
+          <label><input type="checkbox" id="showAF" checked> Segmento AF</label>
+        </div>
+      </div>
+      <div class="control">
+        <div class="section-title">Lectura rápida</div>
+        <div class="pill-grid">
+          <div class="pill"><div class="k">Punto exterior A</div><div class="v" id="coordA">(0,0)</div></div>
+          <div class="pill"><div class="k">Foco F</div><div class="v" id="coordF">(0,0)</div></div>
+          <div class="pill"><div class="k">Tangencia T₁</div><div class="v" id="coordT1">(0,0)</div></div>
+          <div class="pill"><div class="k">Tangencia T₂</div><div class="v" id="coordT2">(0,0)</div></div>
+        </div>
+      </div>
+      <div id="msg" class="msg"></div>
+      <div class="footer-note">Observa que la circunferencia con centro en A y radio AF corta a la directriz en dos puntos. Las paralelas al eje por esos puntos determinan las dos tangencias sobre la parábola.</div>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  const svg=document.getElementById('scene');
+  const gGrid=document.getElementById('grid');
+  const gAxes=document.getElementById('axes');
+  const gCurve=document.getElementById('curve');
+  const gCircles=document.getElementById('circles');
+  const gHelpers=document.getElementById('helpers');
+  const gTangents=document.getElementById('tangents');
+  const gPoints=document.getElementById('points');
+  const gLabels=document.getElementById('labels');
+  const W=980,H=660,cx=300,cy=330;
+  const state={p:70,speed:1.0,playing:false,lastTime:null,dragging:false,orbitT:0.2,pointA:{x:-160,y:170},showCircle:true,showIntersections:true,showParallels:true,showAF:true};
+  const el={pRange:document.getElementById('pRange'),speedRange:document.getElementById('speedRange'),pValue:document.getElementById('pValue'),speedValue:document.getElementById('speedValue'),coordA:document.getElementById('coordA'),coordF:document.getElementById('coordF'),coordT1:document.getElementById('coordT1'),coordT2:document.getElementById('coordT2'),playBtn:document.getElementById('playBtn'),pauseBtn:document.getElementById('pauseBtn'),resetBtn:document.getElementById('resetBtn'),showCircle:document.getElementById('showCircle'),showIntersections:document.getElementById('showIntersections'),showParallels:document.getElementById('showParallels'),showAF:document.getElementById('showAF'),msg:document.getElementById('msg')};
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const sp=(x,y)=>({x:cx+x,y:cy-y});
+  const toMath=(clientX,clientY)=>{const r=svg.getBoundingClientRect();const sx=(clientX-r.left)*(W/r.width);const sy=(clientY-r.top)*(H/r.height);return{x:sx-cx,y:cy-sy}};
+  const svgEl=(tag,attrs={})=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;};
+  const dist=(P,Q)=>Math.hypot(P.x-Q.x,P.y-Q.y);
+  function drawGrid(){gGrid.innerHTML='';for(let x=30;x<=W;x+=40)gGrid.appendChild(svgEl('line',{x1:x,y1:0,x2:x,y2:H,stroke:'#ecf1f8','stroke-width':'1'}));for(let y=30;y<=H;y+=40)gGrid.appendChild(svgEl('line',{x1:0,y1:y,x2:W,y2:y,stroke:'#ecf1f8','stroke-width':'1'}));}
+  function updateButtons(){el.playBtn.classList.toggle('primary',state.playing);el.pauseBtn.classList.toggle('primary',!state.playing);}
+  function ensureExternal(P){
+    const p=state.p;
+    const limit=(P.y*P.y)/(4*p)-18; // point must stay to the left of the parabola
+    let x=Math.min(P.x, limit);
+    x=clamp(x,-250,420);
+    const y=clamp(P.y,-240,240);
+    return {x,y};
+  }
+  function setOrbitPoint(){
+    const x=-120 + 70*Math.cos(state.orbitT) - 65*Math.sin(state.orbitT*0.6);
+    const y=170*Math.sin(state.orbitT);
+    state.pointA=ensureExternal({x,y});
+  }
+  function addText(txt,x,y,opts={}){const t=svgEl('text',{x,y,fill:opts.fill||'#1f2a3d','font-size':opts.size||'20','font-weight':opts.weight||'600','text-anchor':opts.anchor||'start'});t.textContent=txt;gLabels.appendChild(t);}
+  function point(pt,r,fill,stroke='white',sw=2){return svgEl('circle',{cx:pt.x,cy:pt.y,r,fill,stroke,'stroke-width':sw});}
+  function render(){
+    const p=state.p; el.pValue.textContent=Math.round(p); el.speedValue.textContent=state.speed.toFixed(1)+'×';
+    const V={x:0,y:0}, F={x:p,y:0}, D={x:-p,y:0};
+    state.pointA=ensureExternal(state.pointA);
+    const A=state.pointA;
+    const r=dist(A,F);
+    const delta=A.y*A.y - 4*p*A.x;
+    gAxes.innerHTML=''; gCurve.innerHTML=''; gCircles.innerHTML=''; gHelpers.innerHTML=''; gTangents.innerHTML=''; gPoints.innerHTML=''; gLabels.innerHTML='';
+
+    // axes and parabola axis
+    gAxes.appendChild(svgEl('line',{x1:50,y1:cy,x2:930,y2:cy,stroke:'#b7c9b5','stroke-width':'2','marker-end':'url(#arrow)'}));
+    gAxes.appendChild(svgEl('line',{x1:cx,y1:615,x2:cx,y2:45,stroke:'#d9e1ef','stroke-width':'1.5'}));
+    gAxes.appendChild(svgEl('line',{x1:sp(-220,0).x,y1:sp(-220,0).y,x2:sp(600,0).x,y2:sp(600,0).y,stroke:'#9cc6a9','stroke-width':'3','stroke-dasharray':'10 8'}));
+
+    // directrix
+    const dir1=sp(-p,-250), dir2=sp(-p,250);
+    gHelpers.appendChild(svgEl('line',{x1:dir1.x,y1:dir1.y,x2:dir2.x,y2:dir2.y,stroke:'#7c3aed','stroke-width':'3.5'}));
+
+    // parabola
+    let path='';
+    const tMin=-2.5,tMax=2.5,step=0.05;
+    for(let t=tMin;t<=tMax+1e-9;t+=step){const x=p*t*t,y=2*p*t; const s=sp(x,y); path += (t===tMin?'M':'L')+s.x+' '+s.y+' ';}
+    gCurve.appendChild(svgEl('path',{d:path,fill:'none',stroke:'#2563eb','stroke-width':'4'}));
+
+    const sA=sp(A.x,A.y), sF=sp(F.x,F.y), sV=sp(V.x,V.y), sD=sp(D.x,D.y);
+    if(state.showCircle) gCircles.appendChild(svgEl('circle',{cx:sA.x,cy:sA.y,r:r,fill:'none',stroke:'#ea580c','stroke-width':'3','stroke-dasharray':'10 8'}));
+    if(state.showAF) gHelpers.appendChild(svgEl('line',{x1:sA.x,y1:sA.y,x2:sF.x,y2:sF.y,stroke:'#ea580c','stroke-width':'2.5','stroke-dasharray':'7 6'}));
+
+    gPoints.appendChild(point(sA,9,'#111827')); const pointA=gPoints.lastChild; pointA.id='pointA'; pointA.style.cursor='grab';
+    gPoints.appendChild(point(sF,7,'#7c3aed')); gPoints.appendChild(point(sV,7,'#334155')); gPoints.appendChild(point(sD,7,'#7c3aed'));
+    addText('A',sA.x+12,sA.y-12,{size:'22'}); addText('F',sF.x+12,sF.y-12,{size:'20',fill:'#6d28d9'}); addText('V',sV.x+12,sV.y-12,{size:'20'}); addText('D',sD.x-10,sD.y-14,{size:'20',fill:'#6d28d9',anchor:'end'});
+    addText('eje', sp(530,0).x-10, sp(530,0).y-14, {size:'18',fill:'#15803d',anchor:'end',weight:'500'});
+    addText('directriz', dir1.x+12, dir1.y+16, {size:'18',fill:'#6d28d9',weight:'500'});
+    if(state.showCircle) addText('circunferencia auxiliar', sA.x+r-10, sA.y+22, {size:'18',fill:'#c2410c',anchor:'end',weight:'500'});
+
+    if(delta >= 0){
+      const root=Math.sqrt(delta);
+      const y1=A.y + root, y2=A.y - root;
+      const D1={x:-p,y:y1}, D2={x:-p,y:y2};
+      const T1={x:(y1*y1)/(4*p), y:y1};
+      const T2={x:(y2*y2)/(4*p), y:y2};
+      const sD1=sp(D1.x,D1.y), sD2=sp(D2.x,D2.y), sT1=sp(T1.x,T1.y), sT2=sp(T2.x,T2.y);
+      if(state.showIntersections){
+        gPoints.appendChild(point(sD1,7,'#f59e0b')); gPoints.appendChild(point(sD2,7,'#f59e0b'));
+        addText('D₁',sD1.x-10,sD1.y-10,{size:'19',fill:'#92400e',anchor:'end'}); addText('D₂',sD2.x-10,sD2.y-10,{size:'19',fill:'#92400e',anchor:'end'});
+      }
+      if(state.showParallels){
+        const h11=sp(-p,D1.y), h12=sp(600,D1.y), h21=sp(-p,D2.y), h22=sp(600,D2.y);
+        gHelpers.appendChild(svgEl('line',{x1:h11.x,y1:h11.y,x2:h12.x,y2:h12.y,stroke:'#0891b2','stroke-width':'2.5','stroke-dasharray':'8 6'}));
+        gHelpers.appendChild(svgEl('line',{x1:h21.x,y1:h21.y,x2:h22.x,y2:h22.y,stroke:'#0891b2','stroke-width':'2.5','stroke-dasharray':'8 6'}));
+      }
+      gTangents.appendChild(svgEl('line',{x1:sA.x,y1:sA.y,x2:sT1.x,y2:sT1.y,stroke:'#111827','stroke-width':'3.5'}));
+      gTangents.appendChild(svgEl('line',{x1:sA.x,y1:sA.y,x2:sT2.x,y2:sT2.y,stroke:'#111827','stroke-width':'3.5'}));
+      gPoints.appendChild(point(sT1,8,'#dc2626')); gPoints.appendChild(point(sT2,8,'#dc2626'));
+      addText('T₁',sT1.x+12,sT1.y-10,{size:'20',fill:'#b91c1c'}); addText('T₂',sT2.x+12,sT2.y-10,{size:'20',fill:'#b91c1c'});
+      addText('t₁', (sA.x+sT1.x)/2+14, (sA.y+sT1.y)/2-8, {size:'18',fill:'#111827'});
+      addText('t₂', (sA.x+sT2.x)/2+14, (sA.y+sT2.y)/2-8, {size:'18',fill:'#111827'});
+      el.coordT1.textContent=`(${T1.x.toFixed(0)}, ${T1.y.toFixed(0)})`;
+      el.coordT2.textContent=`(${T2.x.toFixed(0)}, ${T2.y.toFixed(0)})`;
+      el.msg.style.display='none';
+    } else {
+      el.coordT1.textContent='—'; el.coordT2.textContent='—';
+      el.msg.textContent='Mueve el punto exterior A para obtener dos tangentes reales a la parábola.';
+      el.msg.style.display='block';
+    }
+
+    el.coordA.textContent=`(${A.x.toFixed(0)}, ${A.y.toFixed(0)})`; el.coordF.textContent=`(${F.x.toFixed(0)}, ${F.y.toFixed(0)})`;
+    pointA.addEventListener('pointerdown', startDrag);
+  }
+  function startDrag(ev){state.dragging=true;state.playing=false;updateButtons();ev.target.setPointerCapture(ev.pointerId);moveDrag(ev);} 
+  function moveDrag(ev){if(!state.dragging)return; state.pointA=ensureExternal(toMath(ev.clientX,ev.clientY)); render();}
+  function endDrag(){state.dragging=false;}
+  svg.addEventListener('pointermove',moveDrag); svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointerleave',endDrag);
+  el.playBtn.addEventListener('click',()=>{state.playing=true;state.lastTime=null;updateButtons();});
+  el.pauseBtn.addEventListener('click',()=>{state.playing=false;updateButtons();});
+  el.resetBtn.addEventListener('click',()=>{state.playing=false;state.p=70;state.speed=1.0;state.orbitT=0.2;setOrbitPoint();el.pRange.value=70;el.speedRange.value=1.0;updateButtons();render();});
+  el.pRange.addEventListener('input',()=>{state.p=+el.pRange.value; state.pointA=ensureExternal(state.pointA); render();});
+  el.speedRange.addEventListener('input',()=>{state.speed=+el.speedRange.value; render();});
+  el.showCircle.addEventListener('change',()=>{state.showCircle=el.showCircle.checked; render();});
+  el.showIntersections.addEventListener('change',()=>{state.showIntersections=el.showIntersections.checked; render();});
+  el.showParallels.addEventListener('change',()=>{state.showParallels=el.showParallels.checked; render();});
+  el.showAF.addEventListener('change',()=>{state.showAF=el.showAF.checked; render();});
+  function tick(ts){if(state.playing && !state.dragging){if(state.lastTime==null)state.lastTime=ts; const dt=(ts-state.lastTime)/1000; state.lastTime=ts; state.orbitT += dt*state.speed*0.65; if(state.orbitT>Math.PI*2) state.orbitT -= Math.PI*2; setOrbitPoint(); render();} else {state.lastTime=ts;} requestAnimationFrame(tick);}
+  drawGrid(); setOrbitPoint(); updateButtons(); render(); requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
