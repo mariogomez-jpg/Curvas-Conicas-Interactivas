@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elipse 3 · Tangentes desde un punto exterior</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --panel:#fff; --line:#d7dfec; --text:#1f2a3d; --muted:#5f6b7a;
+    --blue:#2563eb; --green:#16a34a; --violet:#7c3aed; --orange:#ea580c; --red:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1240px;margin:0 auto;padding:18px}
+  h1{font-size:1.35rem;margin:0 0 6px}
+  .subtitle{margin:0 0 14px;color:var(--muted);font-size:.98rem}
+  .layout{display:grid;grid-template-columns:minmax(320px,1fr) 320px;gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .canvas-card{padding:12px}
+  .side{padding:14px}
+  .section-title{font-weight:bold;margin:0 0 10px;font-size:1rem}
+  svg{width:100%;height:auto;display:block;border-radius:10px;background:linear-gradient(180deg,#fcfdff,#f7faff)}
+  .control{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #eef2f8}
+  .control:last-child{border-bottom:none;margin-bottom:0}
+  label{display:flex;justify-content:space-between;gap:8px;font-size:.95rem;margin-bottom:6px}
+  input[type="range"]{width:100%}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  button{border:1px solid var(--line);background:white;color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-size:.95rem}
+  button.primary{background:var(--blue);border-color:var(--blue);color:white}
+  .checks{display:grid;gap:8px;font-size:.95rem}
+  .checks label{display:flex;justify-content:flex-start;align-items:center;gap:8px;margin:0}
+  .mini{font-size:.86rem;color:var(--muted);line-height:1.35}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.88rem;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .pill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .pill{background:#f8fbff;border:1px solid #e6edf8;border-radius:12px;padding:10px}
+  .pill .k{color:var(--muted);font-size:.82rem;margin-bottom:2px}
+  .pill .v{font-size:1rem;font-weight:bold}
+  .footer-note{margin-top:14px;background:#fbfdff;border:1px dashed #d8e4f4;border-radius:12px;padding:10px;font-size:.9rem;color:var(--muted)}
+  .msg{margin-top:8px;font-size:.9rem;color:#92400e;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:8px 10px;display:none}
+  @media (max-width: 940px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Elipse · Tangentes desde un punto exterior</h1>
+  <p class="subtitle">Observa la construcción geométrica de las dos tangentes a la elipse trazadas desde un punto exterior.</p>
+
+  <div class="layout">
+    <div class="card canvas-card">
+      <svg id="scene" viewBox="0 0 980 660" aria-label="Animación interactiva de tangentes a una elipse desde un punto exterior">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#93a4bc"></path>
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="980" height="660" fill="transparent"></rect>
+        <g id="grid"></g>
+        <g id="circles"></g>
+        <g id="axes"></g>
+        <g id="ellipseG"></g>
+        <g id="construction"></g>
+        <g id="tangents"></g>
+        <g id="points"></g>
+        <g id="labels"></g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2563eb"></i>Elipse</span>
+        <span><i class="swatch" style="background:#7c3aed"></i>Circunferencia focal</span>
+        <span><i class="swatch" style="background:#ea580c"></i>Circunferencia auxiliar</span>
+        <span><i class="swatch" style="background:#111827"></i>Tangentes</span>
+        <span><i class="swatch" style="background:#dc2626"></i>Puntos de tangencia</span>
+      </div>
+    </div>
+
+    <div class="card side">
+      <div class="control">
+        <div class="section-title">Controles</div>
+        <div class="btn-row">
+          <button id="playBtn" class="primary">▶ Iniciar</button>
+          <button id="pauseBtn">⏸ Pausar</button>
+          <button id="resetBtn">↺ Reiniciar</button>
+        </div>
+        <div class="mini">Puedes arrastrar el punto exterior A. Si lo deseas, también puedes animar su recorrido.</div>
+      </div>
+
+      <div class="control">
+        <label for="aRange"><span>Semieje mayor</span><strong id="aValue">230</strong></label>
+        <input id="aRange" type="range" min="160" max="280" value="230" step="1">
+      </div>
+      <div class="control">
+        <label for="bRange"><span>Semieje menor</span><strong id="bValue">145</strong></label>
+        <input id="bRange" type="range" min="80" max="230" value="145" step="1">
+      </div>
+      <div class="control">
+        <label for="speedRange"><span>Velocidad</span><strong id="speedValue">1.0×</strong></label>
+        <input id="speedRange" type="range" min="0.2" max="2.5" value="1.0" step="0.1">
+      </div>
+
+      <div class="control">
+        <div class="section-title">Mostrar</div>
+        <div class="checks">
+          <label><input type="checkbox" id="showFocal" checked> Circunferencia focal</label>
+          <label><input type="checkbox" id="showAux" checked> Circunferencia auxiliar</label>
+          <label><input type="checkbox" id="showHelpers" checked> Segmentos auxiliares</label>
+          <label><input type="checkbox" id="showIntersections" checked> Intersecciones auxiliares</label>
+        </div>
+      </div>
+
+      <div class="control">
+        <div class="section-title">Lectura rápida</div>
+        <div class="pill-grid">
+          <div class="pill"><div class="k">Punto exterior</div><div class="v" id="aPointValue">(0,0)</div></div>
+          <div class="pill"><div class="k">Tangencia 1</div><div class="v" id="t1Value">(0,0)</div></div>
+          <div class="pill"><div class="k">Tangencia 2</div><div class="v" id="t2Value">(0,0)</div></div>
+          <div class="pill"><div class="k">Forma de la elipse</div><div class="v" id="shapeValue">Media</div></div>
+        </div>
+      </div>
+
+      <div id="msg" class="msg"></div>
+      <div class="footer-note">Observa que las intersecciones de ambas circunferencias permiten construir las dos tangentes y localizar sus puntos de tangencia.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const svg = document.getElementById('scene');
+  const gGrid = document.getElementById('grid');
+  const gCircles = document.getElementById('circles');
+  const gAxes = document.getElementById('axes');
+  const gEllipse = document.getElementById('ellipseG');
+  const gConstruction = document.getElementById('construction');
+  const gTangents = document.getElementById('tangents');
+  const gPoints = document.getElementById('points');
+  const gLabels = document.getElementById('labels');
+
+  const W=980, H=660, cx=450, cy=330;
+
+  const state = {
+    a:230, b:145, speed:1.0, playing:false, lastTime:null, dragging:false,
+    orbitT:0.1,
+    pointA:{x:330,y:120},
+    showFocal:true, showAux:true, showHelpers:true, showIntersections:true,
+  };
+
+  const el = {
+    aRange:document.getElementById('aRange'), bRange:document.getElementById('bRange'), speedRange:document.getElementById('speedRange'),
+    aValue:document.getElementById('aValue'), bValue:document.getElementById('bValue'), speedValue:document.getElementById('speedValue'),
+    aPointValue:document.getElementById('aPointValue'), t1Value:document.getElementById('t1Value'), t2Value:document.getElementById('t2Value'), shapeValue:document.getElementById('shapeValue'),
+    playBtn:document.getElementById('playBtn'), pauseBtn:document.getElementById('pauseBtn'), resetBtn:document.getElementById('resetBtn'),
+    showFocal:document.getElementById('showFocal'), showAux:document.getElementById('showAux'), showHelpers:document.getElementById('showHelpers'), showIntersections:document.getElementById('showIntersections'),
+    msg:document.getElementById('msg')
+  };
+
+  function svgEl(tag, attrs={}){ const n=document.createElementNS('http://www.w3.org/2000/svg', tag); for(const[k,v] of Object.entries(attrs)) n.setAttribute(k,v); return n; }
+  function screenPoint(x,y){ return {x:cx+x, y:cy-y}; }
+  function toMathPoint(clientX, clientY){ const r=svg.getBoundingClientRect(); const sx=(clientX-r.left)*(W/r.width); const sy=(clientY-r.top)*(H/r.height); return {x:sx-cx, y:cy-sy}; }
+  function dist(P,Q){ return Math.hypot(P.x-Q.x, P.y-Q.y); }
+  function midpoint(P,Q){ return {x:(P.x+Q.x)/2, y:(P.y+Q.y)/2}; }
+  function shapeLabel(e){ if(e<0.35) return 'Poco alargada'; if(e<0.7) return 'Media'; return 'Muy alargada'; }
+
+  function circleCircleIntersection(C1,r1,C2,r2){
+    const dx=C2.x-C1.x, dy=C2.y-C1.y;
+    const d=Math.hypot(dx,dy);
+    if(d===0 || d>r1+r2 || d<Math.abs(r1-r2)) return [];
+    const a=(r1*r1-r2*r2+d*d)/(2*d);
+    const h2=r1*r1-a*a;
+    if(h2<0) return [];
+    const h=Math.sqrt(Math.max(0,h2));
+    const xm=C1.x + a*dx/d;
+    const ym=C1.y + a*dy/d;
+    const rx=-dy*(h/d);
+    const ry= dx*(h/d);
+    return [{x:xm+rx,y:ym+ry},{x:xm-rx,y:ym-ry}];
+  }
+
+  function ensureOutside(P){
+    const q=(P.x*P.x)/(state.a*state.a) + (P.y*P.y)/(state.b*state.b);
+    if(q<=1.03){
+      const ang=Math.atan2(P.y, P.x || 0.0001);
+      const rx=state.a+35, ry=state.b+35;
+      return {x:rx*Math.cos(ang), y:ry*Math.sin(ang)};
+    }
+    return P;
+  }
+
+  function tangentContactFromLine(line,a,b){
+    const {A,B,C}=line;
+    return {x:-a*a*A/C, y:-b*b*B/C};
+  }
+
+  function lineFromTwoPoints(P,Q){
+    return {A:P.y-Q.y, B:Q.x-P.x, C:P.x*Q.y-Q.x*P.y};
+  }
+
+  function drawGrid(){
+    gGrid.innerHTML='';
+    for(let x=30;x<=W;x+=40) gGrid.appendChild(svgEl('line',{x1:x,y1:0,x2:x,y2:H,stroke:'#ecf1f8','stroke-width':'1'}));
+    for(let y=30;y<=H;y+=40) gGrid.appendChild(svgEl('line',{x1:0,y1:y,x2:W,y2:y,stroke:'#ecf1f8','stroke-width':'1'}));
+  }
+
+  function updateButtons(){
+    el.playBtn.classList.toggle('primary', state.playing);
+    el.pauseBtn.classList.toggle('primary', !state.playing);
+  }
+
+  function setOrbitPoint(){
+    const rx=state.a+170, ry=state.b+135;
+    state.pointA={x:rx*Math.cos(state.orbitT), y:ry*Math.sin(state.orbitT)};
+  }
+
+  function render(){
+    if(state.b >= state.a){ state.b = state.a - 5; el.bRange.value = state.b; }
+    el.aValue.textContent=Math.round(state.a);
+    el.bValue.textContent=Math.round(state.b);
+    el.speedValue.textContent=state.speed.toFixed(1)+'×';
+
+    const a=state.a, b=state.b, c=Math.sqrt(Math.max(0,a*a-b*b)), e=c/a;
+    el.shapeValue.textContent=shapeLabel(e);
+
+    const F1={x:-c,y:0}, F2={x:c,y:0};
+    state.pointA = ensureOutside(state.pointA);
+    const A=state.pointA;
+    const rAux=dist(A,F1);
+    const rFocal=2*a;
+
+    const inters = circleCircleIntersection(A,rAux,F2,rFocal);
+    const valid = inters.length===2;
+
+    gCircles.innerHTML=''; gAxes.innerHTML=''; gEllipse.innerHTML=''; gConstruction.innerHTML=''; gTangents.innerHTML=''; gPoints.innerHTML=''; gLabels.innerHTML='';
+
+    // axes
+    gAxes.appendChild(svgEl('line',{x1:50,y1:cy,x2:920,y2:cy,stroke:'#b7c9b5','stroke-width':'2','marker-end':'url(#arrow)'}));
+    gAxes.appendChild(svgEl('line',{x1:cx,y1:615,x2:cx,y2:45,stroke:'#b7c9b5','stroke-width':'2','marker-end':'url(#arrow)'}));
+
+    // ellipse
+    gEllipse.appendChild(svgEl('ellipse',{cx:cx, cy:cy, rx:a, ry:b, fill:'rgba(37,99,235,0.08)', stroke:'#2563eb', 'stroke-width':'4'}));
+
+    const sA=screenPoint(A.x,A.y), sF1=screenPoint(F1.x,F1.y), sF2=screenPoint(F2.x,F2.y), sC=screenPoint(0,0);
+
+    if(state.showFocal){
+      gCircles.appendChild(svgEl('circle',{cx:sF2.x, cy:sF2.y, r:rFocal, fill:'none', stroke:'#7c3aed', 'stroke-width':'3', 'stroke-dasharray':'12 8'}));
+    }
+    if(state.showAux){
+      gCircles.appendChild(svgEl('circle',{cx:sA.x, cy:sA.y, r:rAux, fill:'none', stroke:'#ea580c', 'stroke-width':'3', 'stroke-dasharray':'10 7'}));
+    }
+
+    if(state.showHelpers){
+      gConstruction.appendChild(svgEl('line',{x1:sA.x,y1:sA.y,x2:sF1.x,y2:sF1.y,stroke:'#ea580c','stroke-width':'2.5','stroke-dasharray':'7 6'}));
+    }
+
+    function addText(txt, x, y, opts={}){
+      const t=svgEl('text',{x,y,fill:opts.fill||'#1f2a3d','font-size':opts.size||'20','font-weight':opts.weight||'600','text-anchor':opts.anchor||'start'});
+      t.textContent=txt; gLabels.appendChild(t);
+    }
+    function point(pt, r, fill, stroke='white', sw=2){ return svgEl('circle',{cx:pt.x,cy:pt.y,r,fill,stroke,'stroke-width':sw}); }
+
+    // fixed points
+    gPoints.appendChild(point(sC,5,'#334155','none',0));
+    gPoints.appendChild(point(sF1,7,'#7c3aed'));
+    gPoints.appendChild(point(sF2,7,'#7c3aed'));
+    const pointA=point(sA,9,'#111827'); pointA.id='pointA'; pointA.style.cursor='grab'; gPoints.appendChild(pointA);
+    addText('C', sC.x+10, sC.y-10, {size:'20'});
+    addText('F₁', sF1.x-6, sF1.y-14, {size:'20', anchor:'middle'});
+    addText('F₂', sF2.x+2, sF2.y-14, {size:'20', anchor:'middle'});
+    addText('A', sA.x+12, sA.y-12, {size:'22'});
+    if(state.showFocal) addText('circunferencia focal', sF2.x+rFocal-10, sF2.y-12, {size:'18', fill:'#6d28d9', anchor:'end', weight:'500'});
+    if(state.showAux) addText('circunferencia auxiliar', sA.x+rAux-10, sA.y+22, {size:'18', fill:'#c2410c', anchor:'end', weight:'500'});
+
+    if(valid){
+      const [S1,S2] = inters.sort((p,q)=>q.y-p.y);
+      const M1 = midpoint(F1,S1), M2 = midpoint(F1,S2);
+      const line1 = lineFromTwoPoints(A,M1);
+      const line2 = lineFromTwoPoints(A,M2);
+      const T1 = tangentContactFromLine(line1,a,b);
+      const T2 = tangentContactFromLine(line2,a,b);
+
+      const sS1=screenPoint(S1.x,S1.y), sS2=screenPoint(S2.x,S2.y), sM1=screenPoint(M1.x,M1.y), sM2=screenPoint(M2.x,M2.y), sT1=screenPoint(T1.x,T1.y), sT2=screenPoint(T2.x,T2.y);
+
+      if(state.showIntersections){
+        gPoints.appendChild(point(sS1,7,'#f59e0b'));
+        gPoints.appendChild(point(sS2,7,'#f59e0b'));
+        addText('S₁', sS1.x+10, sS1.y-10, {size:'18', fill:'#92400e'});
+        addText('S₂', sS2.x+10, sS2.y-10, {size:'18', fill:'#92400e'});
+      }
+
+      if(state.showHelpers){
+        gConstruction.appendChild(svgEl('line',{x1:sF1.x,y1:sF1.y,x2:sS1.x,y2:sS1.y,stroke:'#f59e0b','stroke-width':'2.5','stroke-dasharray':'7 6'}));
+        gConstruction.appendChild(svgEl('line',{x1:sF1.x,y1:sF1.y,x2:sS2.x,y2:sS2.y,stroke:'#f59e0b','stroke-width':'2.5','stroke-dasharray':'7 6'}));
+      }
+
+      // tangents extended
+      function tangentSegment(line){
+        const E1={x:A.x-1200,y:(-line.C-line.A*(A.x-1200))/line.B};
+        const E2={x:A.x+1200,y:(-line.C-line.A*(A.x+1200))/line.B};
+        if(Math.abs(line.B) < 1e-8){
+          const x=-line.C/line.A;
+          return [screenPoint(x,-1200), screenPoint(x,1200)];
+        }
+        return [screenPoint(E1.x,E1.y), screenPoint(E2.x,E2.y)];
+      }
+      const [l11,l12]=tangentSegment(line1);
+      const [l21,l22]=tangentSegment(line2);
+      gTangents.appendChild(svgEl('line',{x1:l11.x,y1:l11.y,x2:l12.x,y2:l12.y,stroke:'#111827','stroke-width':'3.5'}));
+      gTangents.appendChild(svgEl('line',{x1:l21.x,y1:l21.y,x2:l22.x,y2:l22.y,stroke:'#111827','stroke-width':'3.5'}));
+
+      gPoints.appendChild(point(sT1,8,'#dc2626'));
+      gPoints.appendChild(point(sT2,8,'#dc2626'));
+      addText('T₁', sT1.x+12, sT1.y-10, {size:'20', fill:'#b91c1c'});
+      addText('T₂', sT2.x+12, sT2.y-10, {size:'20', fill:'#b91c1c'});
+      addText('t₁', l11.x+55, l11.y+25, {size:'18', fill:'#111827'});
+      addText('t₂', l21.x+55, l21.y-10, {size:'18', fill:'#111827'});
+
+      el.t1Value.textContent=`(${T1.x.toFixed(0)}, ${T1.y.toFixed(0)})`;
+      el.t2Value.textContent=`(${T2.x.toFixed(0)}, ${T2.y.toFixed(0)})`;
+      el.msg.style.display='none';
+    } else {
+      el.t1Value.textContent='—';
+      el.t2Value.textContent='—';
+      el.msg.textContent='Mueve el punto exterior A o modifica la elipse para recuperar las dos tangentes.';
+      el.msg.style.display='block';
+    }
+
+    el.aPointValue.textContent=`(${A.x.toFixed(0)}, ${A.y.toFixed(0)})`;
+    pointA.addEventListener('pointerdown', startDrag);
+  }
+
+  function startDrag(ev){ state.dragging=true; state.playing=false; updateButtons(); ev.target.setPointerCapture(ev.pointerId); moveDrag(ev); }
+  function moveDrag(ev){ if(!state.dragging) return; state.pointA = ensureOutside(toMathPoint(ev.clientX, ev.clientY)); render(); }
+  function endDrag(){ state.dragging=false; }
+  svg.addEventListener('pointermove', moveDrag); svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointerleave', endDrag);
+
+  el.playBtn.addEventListener('click', ()=>{ state.playing=true; state.lastTime=null; updateButtons(); });
+  el.pauseBtn.addEventListener('click', ()=>{ state.playing=false; updateButtons(); });
+  el.resetBtn.addEventListener('click', ()=>{
+    state.playing=false; state.a=230; state.b=145; state.speed=1.0; state.orbitT=0.1; setOrbitPoint();
+    el.aRange.value=state.a; el.bRange.value=state.b; el.speedRange.value=state.speed; render(); updateButtons();
+  });
+  el.aRange.addEventListener('input', ()=>{ state.a=+el.aRange.value; if(state.b>=state.a){state.b=state.a-5; el.bRange.value=state.b;} state.pointA=ensureOutside(state.pointA); render(); });
+  el.bRange.addEventListener('input', ()=>{ state.b=Math.min(+el.bRange.value, state.a-5); el.bRange.value=state.b; state.pointA=ensureOutside(state.pointA); render(); });
+  el.speedRange.addEventListener('input', ()=>{ state.speed=+el.speedRange.value; render(); });
+  el.showFocal.addEventListener('change', ()=>{ state.showFocal=el.showFocal.checked; render(); });
+  el.showAux.addEventListener('change', ()=>{ state.showAux=el.showAux.checked; render(); });
+  el.showHelpers.addEventListener('change', ()=>{ state.showHelpers=el.showHelpers.checked; render(); });
+  el.showIntersections.addEventListener('change', ()=>{ state.showIntersections=el.showIntersections.checked; render(); });
+
+  function tick(ts){
+    if(state.playing && !state.dragging){
+      if(state.lastTime==null) state.lastTime=ts;
+      const dt=(ts-state.lastTime)/1000; state.lastTime=ts;
+      state.orbitT += dt*state.speed*0.55;
+      if(state.orbitT > Math.PI*2) state.orbitT -= Math.PI*2;
+      setOrbitPoint();
+      render();
+    } else {
+      state.lastTime=ts;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  drawGrid();
+  setOrbitPoint();
+  updateButtons();
+  render();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
